@@ -3557,43 +3557,46 @@ let mindMapPanel = null; // Guarda referência ao painel para remover listeners
 let isPinching = false; // Flag para controlar o estado de pinça
 
 function touchStartHandler(event) {
+    // SÓ previne o default se forem DOIS dedos (início do pinch)
     if (event.touches.length === 2) {
-        event.preventDefault(); // Previne zoom padrão do navegador
+        event.preventDefault(); // << MOVIDO PARA DENTRO DO IF
         isPinching = true;
         initialDistance = Math.hypot(
             event.touches[0].pageX - event.touches[1].pageX,
             event.touches[0].pageY - event.touches[1].pageY
         );
-        // console.log("[MindMap Touch] Pinch Start - Initial Distance:", initialDistance); // Debug
+        // console.log("[MindMap Touch] Pinch Start - Initial Distance:", initialDistance);
+    } else {
+        // Se for um dedo ou mais de dois, permite o comportamento padrão/jsMind
+        isPinching = false; // Garante que não está em modo pinch
     }
 }
 
 function touchMoveHandler(event) {
+    // SÓ previne o default se estivermos ATIVAMENTE fazendo pinch com DOIS dedos
     if (isPinching && event.touches.length === 2) {
-        event.preventDefault(); // Previne scroll/zoom padrão durante o movimento
+        event.preventDefault(); // << JÁ ESTAVA CORRETO AQUI DENTRO
         const currentDistance = Math.hypot(
             event.touches[0].pageX - event.touches[1].pageX,
             event.touches[0].pageY - event.touches[1].pageY
         );
         const deltaDistance = currentDistance - initialDistance;
-        const zoomSensitivity = 5; // Ajuste a sensibilidade conforme necessário
+        const zoomSensitivity = 5;
 
-        // console.log("[MindMap Touch] Pinch Move - Current:", currentDistance, "Delta:", deltaDistance); // Debug
+        // console.log("[MindMap Touch] Pinch Move - Current:", currentDistance, "Delta:", deltaDistance);
 
         if (Math.abs(deltaDistance) > zoomSensitivity) {
             if (deltaDistance > 0) {
-                // Dedos se afastando -> Zoom In
                 currentMindMapInstance.view.zoomIn();
-                // console.log("[MindMap Touch] Zoom In"); // Debug
+                // console.log("[MindMap Touch] Zoom In");
             } else {
-                // Dedos se aproximando -> Zoom Out
                 currentMindMapInstance.view.zoomOut();
-                // console.log("[MindMap Touch] Zoom Out"); // Debug
+                // console.log("[MindMap Touch] Zoom Out");
             }
-            // Atualiza a distância inicial para o próximo movimento, tornando o zoom mais contínuo
             initialDistance = currentDistance;
         }
     }
+    // NÃO há 'else' aqui, pois se não for pinch, não queremos interferir
 }
 
 function touchEndHandler(event) {
