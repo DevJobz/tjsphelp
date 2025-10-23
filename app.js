@@ -2084,59 +2084,99 @@ function renderChatSuggestions() {
 function setupChatEventListeners() {
     const chatInput = document.getElementById('chat-input');
     const sendChatButton = document.getElementById('send-chat');
-    const chatInterface = document.getElementById('chat-interface'); // O "gerente" que está sempre presente
+    const chatInterface = document.getElementById('chat-interface'); // Pega o contêiner principal
     const suggestionsContainer = document.getElementById(
         'chat-suggestions-container'
     );
     const showSuggestionsBtn = document.getElementById('show-suggestions-btn');
 
-    if (!chatInput || !sendChatButton || !chatInterface) return;
+    // Validação para garantir que todos os elementos existem
+    if (
+        !chatInput ||
+        !sendChatButton ||
+        !chatInterface ||
+        !suggestionsContainer ||
+        !showSuggestionsBtn
+    ) {
+        console.error(
+            'ERRO: Elementos essenciais do chat não encontrados para adicionar listeners.'
+        );
+        return;
+    }
 
-    // --- LÓGICA DE ENVIO (JÁ ESTAVA CORRETA) ---
+    // --- Listener para Enviar Mensagem (Click) ---
     sendChatButton.addEventListener('click', sendChatMessage);
 
+    // --- Listener para Enviar Mensagem (Enter) ---
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
+            e.preventDefault(); // Impede nova linha
             sendChatMessage();
         }
     });
 
+    // --- Listener para Auto-ajuste de Altura do Textarea ---
     chatInput.addEventListener('input', () => {
-        chatInput.style.height = 'auto';
-        chatInput.style.height = `${chatInput.scrollHeight}px`;
+        chatInput.style.height = 'auto'; // Reseta altura
+        chatInput.style.height = `${chatInput.scrollHeight}px`; // Ajusta à altura do conteúdo
     });
 
-    // --- CORREÇÃO: DELEGAÇÃO DE EVENTOS PARA OS BOTÕES DINÂMICOS ---
-    // O event listener agora é anexado ao contêiner principal do chat
-    chatInterface.addEventListener('click', function (e) {
-        // 1. Lógica para o botão de MOSTRAR/ESCONDER sugestões (💡)
-        const suggestionsBtn = e.target.closest('#show-suggestions-btn');
-        if (suggestionsBtn) {
-            if (suggestionsContainer.innerHTML.trim() !== '') {
-                suggestionsContainer.innerHTML = ''; // Esconde
-            } else {
-                suggestionsContainer.innerHTML = renderChatSuggestions(); // Mostra
-            }
-            return; // Finaliza
-        }
+    // --- Listener para o Botão de Mostrar/Esconder Sugestões (💡) ---
+    showSuggestionsBtn.addEventListener('click', () => {
+        // Verifica se a classe está presente no contêiner principal
+        const isVisible = chatInterface.classList.contains(
+            'suggestions-visible'
+        );
 
-        // 2. Lógica para os botões de SUGESTÃO DE PERGUNTA
-        const suggestionBtn = e.target.closest('.suggestion-btn');
-        if (suggestionBtn) {
-            const question = suggestionBtn.dataset.question;
-            const input = document.getElementById('chat-input');
+        if (isVisible) {
+            // Se está visível -> Esconder
+            suggestionsContainer.innerHTML = ''; // Limpa o conteúdo das sugestões
+            chatInterface.classList.remove('suggestions-visible'); // Remove a classe
+            showSuggestionsBtn.setAttribute('aria-expanded', 'false');
+            // Opcional: Mudar visual do botão (ex: remover classe 'active')
+            showSuggestionsBtn.classList.remove('active');
+        } else {
+            // Se está escondido -> Mostrar
+            suggestionsContainer.innerHTML = renderChatSuggestions(); // Gera e insere o HTML das sugestões
+            chatInterface.classList.add('suggestions-visible'); // Adiciona a classe
+            showSuggestionsBtn.setAttribute('aria-expanded', 'true');
+            // Opcional: Mudar visual do botão (ex: adicionar classe 'active')
+            showSuggestionsBtn.classList.add('active');
 
-            input.value = question; // Coloca a pergunta no input
-            sendChatMessage(); // Envia a mensagem
+            // --- DELEGAÇÃO DE EVENTOS para os botões de sugestão recém-criados ---
+            // Adiciona um listener no CONTAINER das sugestões que "ouve" cliques nos botões internos
+            suggestionsContainer.addEventListener(
+                'click',
+                function handleSuggestionClick(e) {
+                    const suggestionBtn = e.target.closest('.suggestion-btn');
+                    if (suggestionBtn) {
+                        const question = suggestionBtn.dataset.question;
+                        chatInput.value = question; // Preenche o input
+                        sendChatMessage(); // Envia a mensagem
 
-            // Esconde as sugestões após o uso
-            if (suggestionsContainer) {
-                suggestionsContainer.innerHTML = '';
-            }
-            return; // Finaliza
+                        // Esconde as sugestões após o uso
+                        suggestionsContainer.innerHTML = '';
+                        chatInterface.classList.remove('suggestions-visible');
+                        showSuggestionsBtn.setAttribute(
+                            'aria-expanded',
+                            'false'
+                        );
+                        showSuggestionsBtn.classList.remove('active');
+
+                        // Importante: Remove o listener de clique do container para evitar duplicações futuras
+                        suggestionsContainer.removeEventListener(
+                            'click',
+                            handleSuggestionClick
+                        );
+                    }
+                }
+            );
+            // --- FIM DA DELEGAÇÃO ---
         }
     });
+
+    console.log('[Chat] Event listeners configurados.');
+    // Nota: loadChatHistory() geralmente é chamado ao NAVEGAR para a seção de chat, não aqui.
 }
 
 // SUBSTITUA A FUNÇÃO 'renderChatInterface' INTEIRA POR ESTA:

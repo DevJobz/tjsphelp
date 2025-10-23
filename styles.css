@@ -6870,3 +6870,1521 @@ input:checked + .slider:before {
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), var(--bg-tertiary));
 }
 */
+
+/* ====================================================== */
+/* ===== INÍCIO: NOVAS REGRAS DE RESPONSIVIDADE ===== */
+/* ====================================================== */
+
+/* --- Ajustes Gerais e Preparação --- */
+
+body {
+    -webkit-tap-highlight-color: transparent; /* Remove highlight azul no toque em mobile */
+}
+
+/* Garante que o contêiner principal ocupe a tela */
+#app-container {
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevenir scroll horizontal acidental */
+}
+
+/* Estilo Base para Botão Mobile (já existe no seu CSS, apenas garantindo visibilidade inicial) */
+.mobile-menu-toggle {
+    display: none; /* Escondido por padrão, mostrado via media query */
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0; /* Removido para controle exato de width/height */
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 24px; /* Tamanho do ícone */
+    width: 44px; /* Mínimo touch target */
+    height: 44px; /* Mínimo touch target */
+    box-shadow: var(--shadow-md);
+    display: flex; /* Para centralizar o ícone */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo Base para Overlay Mobile (já existe, garantindo) */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Um pouco mais escuro */
+    z-index: 998;
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+}
+
+.mobile-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Ajustes na Sidebar para Mobile (será ativado via media query) */
+#sidebar {
+    transition: transform var(--transition-normal); /* Suaviza entrada/saída */
+}
+
+/* Estilo Base para Botão Mobile (já existe no seu CSS, apenas garantindo visibilidade inicial) */
+.mobile-menu-toggle {
+    display: none; /* Escondido por padrão, mostrado via media query */
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0; /* Removido para controle exato de width/height */
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 24px; /* Tamanho do ícone */
+    width: 44px; /* Mínimo touch target */
+    height: 44px; /* Mínimo touch target */
+    box-shadow: var(--shadow-md);
+    /* ===== CORREÇÃO AQUI ===== */
+    /* REMOVA ou MUDE a linha abaixo de 'flex' para 'none' */
+    /* display: flex;  <-- Linha incorreta que causa o problema */
+    display: none; /* <<<< GARANTA QUE ESTEJA 'none' AQUI */
+    /* ========================= */
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================================ */
+/* ===== Responsividade para Tablets (ex: até 1024px) ===== */
+/* ============================================================ */
+@media (max-width: 1024px) {
+    /* Ajustes leves se necessário, muitos podem já estar cobertos pelo CSS original */
+
+    /* Garantir que grids complexos não fiquem muito apertados */
+    .dashboard-grid,
+    .quiz-config {
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(280px, 1fr)
+        ); /* Reduz minmax */
+    }
+
+    .flashcards-grid,
+    .mindmaps-grid,
+    .tracks-grid,
+    .chunks-grid {
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(300px, 1fr)
+        ); /* Ajusta minmax */
+        gap: var(--spacing-5);
+    }
+
+    .modal-content {
+        max-width: 700px; /* Reduz um pouco o max-width */
+    }
+
+    /* Ajuste específico para mapa mental no modal */
+    .mindmap-view-modal .modal-content {
+        max-width: 90vw; /* Usa viewport width */
+        height: 85vh;
+        max-height: 85vh;
+    }
+
+    /* Reduzir um pouco a fonte base se necessário */
+    /* html { font-size: 15px; } */
+}
+
+/* ==================================================================== */
+/* ===== Responsividade Principal para Mobile (ex: até 768px) ===== */
+/* ==================================================================== */
+@media (max-width: 768px) {
+    /* --- Layout Geral e Sidebar --- */
+    .mobile-menu-toggle {
+        display: flex; /* Mostra o botão hambúrguer */
+    }
+
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0; /* Começa posicionado */
+        width: 280px; /* Largura padrão ao abrir */
+        height: 100%;
+        transform: translateX(-100%); /* Começa fora da tela */
+        z-index: 999;
+        box-shadow: var(--shadow-lg);
+        border-right: none; /* Remove borda direita fixa */
+        overflow-y: auto; /* Garante scroll na sidebar se conteúdo for maior */
+    }
+
+    #sidebar.active {
+        transform: translateX(0); /* Entra na tela */
+    }
+
+    /* Esconde o botão de recolher/expandir da sidebar desktop */
+    #sidebar-toggle {
+        display: none;
+    }
+
+    /* Remove a classe 'collapsed' se existir em mobile, forçando estado normal */
+    #sidebar.collapsed {
+        width: 280px;
+        transform: translateX(-100%); /* Mantém escondido se 'collapsed' */
+    }
+    #sidebar.collapsed.active {
+        transform: translateX(
+            0
+        ); /* Garante que 'active' funcione mesmo com 'collapsed' */
+    }
+
+    #main-content {
+        margin-left: 0 !important; /* Conteúdo ocupa 100% da largura */
+        width: 100%;
+        padding: 70px 15px 20px 15px; /* Adiciona padding-top para não ficar sob o header/toggle */
+        min-height: calc(
+            100vh - 70px
+        ); /* Garante altura mínima descontando padding */
+    }
+
+    /* --- Tipografia --- */
+    html {
+        font-size: 15px; /* Reduz levemente a base */
+    }
+    h1 {
+        font-size: var(--font-size-3xl);
+    }
+    h2 {
+        font-size: var(--font-size-2xl);
+    }
+    h3 {
+        font-size: var(--font-size-xl);
+    }
+    h4 {
+        font-size: var(--font-size-lg);
+    }
+    /* h5, h6 podem manter --font-size-base ou --font-size-sm */
+
+    /* --- Grids --- */
+    /* Colapsa a maioria dos grids para 1 coluna */
+    .dashboard-grid,
+    .quiz-config,
+    .flashcard-stats,
+    .chunks-grid,
+    .tracks-grid,
+    .flashcards-grid,
+    .mindmaps-grid,
+    .stats-cards,
+    .achievements-grid, /* Pode ajustar para 2 ou 3 colunas se preferir */
+    .options-grid,
+    .detailed-stats-grid,
+    #mindmap-article-selection-area .articles-grid,
+    .tracks-selection .articles-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4); /* Espaçamento menor */
+    }
+
+    .dashboard-stats {
+        /* Dashboard específico */
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(100px, 1fr)
+        ); /* Permite mais badges por linha */
+    }
+
+    /* --- Cards --- */
+    .card,
+    .track-card,
+    .flashcard-card,
+    .mindmap-card,
+    .chunk-card,
+    .setting-group,
+    .stat-card {
+        padding: var(--spacing-4); /* Padding menor */
+    }
+
+    .stat-card .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: var(--font-size-xl);
+    }
+    .stat-card .stat-number {
+        font-size: 1.8rem;
+    }
+
+    /* Ajustes específicos para cards complexos */
+    .track-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .track-actions {
+        align-self: flex-end; /* Mantém ações à direita */
+        margin-top: var(--spacing-2);
+    }
+    .track-stats {
+        flex-direction: column; /* Empilha stats */
+        gap: var(--spacing-2);
+        align-items: flex-start;
+    }
+    .flashcard-header,
+    .mindmap-header {
+        margin-bottom: var(--spacing-3);
+    }
+    .flashcard-title,
+    .mindmap-title {
+        font-size: var(--font-size-base);
+    }
+
+    /* --- Modais --- */
+    .modal-content {
+        width: 95%;
+        padding: var(--spacing-5);
+        max-height: 85vh; /* Reduz altura máxima */
+    }
+    .modal-content h3 {
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-4);
+    }
+    .modal-actions,
+    .confirmation-actions {
+        flex-direction: column; /* Empilha botões */
+        gap: var(--spacing-3);
+    }
+    .modal-actions .btn,
+    .confirmation-actions .btn {
+        width: 100%; /* Botões ocupam largura total */
+        justify-content: center;
+    }
+    .modal-actions #cancel-delete, /* Botão cancelar específico */
+    .modal-actions #cancel-generation,
+    .modal-actions #cancel-track-select,
+    .modal-actions #cancel-difficulty-select {
+        order: 1; /* Coloca cancelar por último */
+    }
+
+    /* Modal de Mapa Mental */
+    .mindmap-view-modal .modal-content {
+        width: 95vw;
+        height: 85vh;
+        max-height: 85vh;
+    }
+    .mindmap-view-modal .modal-footer {
+        padding: var(--spacing-3);
+    }
+    .mindmap-view-modal .difficulty-rating-buttons {
+        gap: var(--spacing-2);
+    }
+    .mindmap-view-modal .difficulty-rating-buttons .btn-difficulty {
+        padding: var(--spacing-2) var(--spacing-3);
+        font-size: var(--font-size-xs);
+        flex-basis: auto; /* Remove base fixa */
+        max-width: none;
+    }
+
+    /* Modal de Revisão Deck */
+    .deck-review-modal .modal-content {
+        padding: 0; /* Mantém sem padding */
+    }
+    .deck-review-container {
+        padding: var(--spacing-4);
+        min-height: auto;
+    }
+    .deck-card {
+        min-height: 300px; /* Reduz altura mínima */
+    }
+    .card-face {
+        padding: var(--spacing-4);
+    }
+    .card-content h4 {
+        font-size: var(--font-size-sm);
+    }
+    .card-content p {
+        font-size: var(--font-size-sm);
+    }
+    .deck-navigation {
+        margin-top: var(--spacing-3);
+    }
+    .deck-navigation .btn {
+        padding: var(--spacing-2) var(--spacing-4);
+        font-size: var(--font-size-sm);
+    }
+    /* Empilha botões de qualidade */
+    .card-face--back .quality-buttons {
+        grid-template-columns: 1fr; /* Uma coluna */
+    }
+
+    /* --- Formulários e Configurações --- */
+    .config-section,
+    .setting-group {
+        padding: var(--spacing-4);
+    }
+    .config-row,
+    .form-group {
+        flex-direction: column; /* Empilha label e input */
+        align-items: stretch; /* Alinha itens na largura total */
+        gap: var(--spacing-2);
+    }
+    .config-row label,
+    .form-group label {
+        margin-bottom: var(--spacing-1);
+        font-weight: 600; /* Destaca label */
+        min-width: auto; /* Remove min-width */
+    }
+    .config-row select,
+    .config-row input,
+    .form-control,
+    .filter-select {
+        width: 100%; /* Ocupa largura total */
+        min-width: auto;
+    }
+    /* iOS Zoom Prevention */
+    input[type='text'],
+    input[type='password'],
+    input[type='email'],
+    input[type='number'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='url'],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* Filtros (Flashcards / Mapas) */
+    .toggle-filters-btn {
+        display: inline-flex; /* Mostra botão de toggle */
+    }
+    .content-filters {
+        display: none; /* Esconde filtros por padrão */
+        grid-template-columns: 1fr; /* Uma coluna quando visível */
+        gap: var(--spacing-4);
+        padding: var(--spacing-4);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background-color: var(--bg-secondary);
+        margin-bottom: var(--spacing-4);
+    }
+    /* Seletor JS para mostrar */
+    .content-filters.visible {
+        display: grid;
+    }
+    /* Ações de Revisão */
+    .review-actions {
+        display: grid; /* Usa grid para botões de tamanho igual */
+        grid-template-columns: 1fr 1fr; /* Duas colunas */
+        gap: var(--spacing-3);
+        margin-bottom: var(--spacing-4);
+    }
+    .review-actions .btn {
+        width: 100%; /* Ocupa a coluna */
+        justify-content: center;
+    }
+
+    /* --- Chat --- */
+    #chat-interface {
+        height: calc(
+            100vh - 150px
+        ); /* Ajusta altura para preencher tela mobile */
+        max-height: none; /* Remove max-height */
+    }
+    #chat-messages {
+        padding: var(--spacing-4);
+    }
+    .user-message,
+    .ai-message {
+        max-width: 90%; /* Bolhas ocupam mais largura */
+        padding: var(--spacing-3) var(--spacing-4);
+    }
+    .chat-input-container {
+        padding: var(--spacing-3);
+        gap: var(--spacing-2);
+        align-items: center; /* Re-alinha para o centro */
+    }
+    #chat-input {
+        min-height: 44px; /* Garante altura mínima tocável */
+        max-height: 150px; /* Limita crescimento */
+    }
+    #send-chat,
+    #show-suggestions-btn {
+        width: 44px; /* Tamanho mínimo tocável */
+        height: 44px;
+        min-width: 44px;
+    }
+    #chat-suggestions-container {
+        padding: 0 var(--spacing-3) var(--spacing-3);
+    }
+    .suggestion-buttons {
+        gap: var(--spacing-1);
+    }
+    .suggestion-btn {
+        padding: var(--spacing-1) var(--spacing-2);
+        font-size: 11px; /* Fonte bem pequena */
+    }
+
+    /* --- Quiz --- */
+    .quiz-question h3 {
+        font-size: var(--font-size-lg);
+    }
+    .quiz-options li {
+        padding: var(--spacing-3) var(--spacing-4);
+        font-size: var(--font-size-base);
+        min-height: 50px; /* Garante altura mínima */
+    }
+    .quiz-actions {
+        flex-direction: column;
+        gap: var(--spacing-3);
+    }
+    .quiz-actions .btn {
+        width: 100%;
+    }
+    /* Histórico e Stats do Quiz */
+    .quiz-history,
+    .quiz-stats {
+        padding: var(--spacing-4);
+    }
+    .stats-grid {
+        grid-template-columns: 1fr; /* Uma coluna */
+    }
+    .stat-item {
+        padding: var(--spacing-2);
+    }
+
+    /* --- Trilha de Estudo (Reading Topic) --- */
+    .topic-header-top {
+        flex-direction: column; /* Empilha botão voltar e stats */
+        align-items: stretch;
+    }
+    #back-button {
+        margin-bottom: var(--spacing-3);
+    }
+    .topic-stats {
+        justify-content: space-between; /* Espaça stats */
+    }
+    /* Lista de Artigos */
+    .legal-articles-section {
+        padding: var(--spacing-3);
+    }
+    .articles-list {
+        max-height: 40vh; /* Limita altura */
+        overflow-y: auto;
+    }
+    .article-item {
+        padding: var(--spacing-3);
+    }
+    .article-header {
+        gap: var(--spacing-2);
+    }
+    .article-details {
+        margin-left: calc(16px + var(--spacing-2));
+    }
+    .article-usage {
+        flex-direction: column; /* Empilha badges de uso */
+        align-items: flex-start;
+        gap: var(--spacing-1);
+    }
+    .article-actions {
+        margin-top: var(--spacing-3);
+    }
+    /* Lista de Favoritos */
+    .favorite-articles-list {
+        max-height: 25vh; /* Limita altura */
+    }
+
+    /* --- Geração (Flashcards / Mapas) --- */
+    .generation-section {
+        padding: var(--spacing-4);
+    }
+    .tracks-selection {
+        max-height: 50vh; /* Limita altura */
+    }
+    .track-selection-group summary {
+        padding: var(--spacing-3);
+    }
+    .track-summary-title {
+        font-size: var(--font-size-sm);
+    }
+    .articles-grid {
+        padding: var(--spacing-3);
+    }
+    .article-card {
+        padding: var(--spacing-3);
+    }
+    .article-reference {
+        font-size: var(--font-size-sm);
+    }
+    .article-subject,
+    .article-text-preview,
+    .article-law {
+        font-size: var(--font-size-xs);
+    }
+    .generation-options {
+        padding: var(--spacing-3);
+    }
+
+    /* --- Paginação --- */
+    .pagination-controls {
+        flex-direction: column;
+        gap: var(--spacing-3);
+    }
+    .pagination-controls .btn {
+        width: 100%;
+        max-width: 250px; /* Limita largura dos botões */
+        justify-content: center;
+    }
+    .pagination-controls .page-info {
+        font-size: var(--font-size-xs);
+    }
+
+    /* --- Notificações --- */
+    .achievement-notification {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        top: auto; /* Posiciona no fundo */
+        transform: translateY(150%); /* Animação de baixo */
+        max-width: none;
+        width: auto;
+    }
+    .achievement-notification.show {
+        transform: translateY(0);
+    }
+    .toast-notification {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        top: auto;
+        transform: translateY(150%);
+        max-width: none;
+        width: auto;
+    }
+    .toast-notification.show {
+        transform: translateY(0);
+    }
+
+    /* Dentro de @media (max-width: 768px) ou menor se aplicável */
+
+    /* Permite explicitamente pan e zoom no contêiner interno do mapa no modal */
+    .mindmap-view-modal .jsmind-inner {
+        touch-action: pan-x pan-y pinch-zoom;
+        -webkit-overflow-scrolling: touch; /* Melhora a rolagem em iOS, embora o jsMind controle o pan */
+        cursor: grab; /* Indica visualmente que é arrastável */
+    }
+
+    .mindmap-view-modal .jsmind-inner:active {
+        cursor: grabbing; /* Muda o cursor ao arrastar */
+    }
+
+    /* Garante que o container do jsmind tenha tamanho e permita interação */
+    .mindmap-view-modal .modal-body > div[id^='jsmind_container_modal_'] {
+        position: absolute; /* Garante que o jsmind-inner possa se posicionar */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden; /* Controlado internamente pelo jsMind */
+    }
+
+    /* Garante que elementos SVG/Canvas recebam os eventos */
+    .mindmap-view-modal svg.jsmind,
+    .mindmap-view-modal canvas.jsmind,
+    .mindmap-view-modal jmnodes {
+        touch-action: none; /* Deixa a biblioteca jsMind controlar totalmente */
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Ajusta a altura da interface geral se necessário, dando mais espaço para mensagens */
+    #chat-interface {
+        /* Você pode experimentar um valor um pouco maior se houver espaço vertical */
+        /* Ex: height: calc(100vh - 130px); */
+        /* Mantendo o original por enquanto: */
+        height: calc(100vh - 150px);
+    }
+
+    /* Garante que a área de mensagens cresça */
+    #chat-messages {
+        flex-grow: 1; /* Garante que ocupe o espaço vertical */
+        padding: var(--spacing-3); /* Padding ligeiramente menor */
+    }
+
+    /* Contêiner do Input: Força layout em linha e alinhamento na base */
+    .chat-input-container {
+        flex-direction: row; /* Coloca itens lado a lado */
+        align-items: flex-end; /* Alinha na base (bom para textarea multi-linha) */
+        padding: var(--spacing-2) var(--spacing-3); /* Padding menor */
+        gap: var(--spacing-2); /* Espaço menor entre itens */
+    }
+
+    /* Campo de Texto (Textarea): Aumenta altura mínima */
+    #chat-input {
+        min-height: 50px; /* Altura mínima maior */
+        max-height: 120px; /* Reduz um pouco a altura máxima se necessário */
+        flex: 1; /* Garante que ocupe o espaço horizontal */
+        font-size: 16px !important; /* Mantém para evitar zoom iOS */
+        padding: var(--spacing-2) var(--spacing-3); /* Padding interno */
+    }
+
+    /* Botões: Tamanho fixo e sem encolher */
+    #send-chat,
+    #show-suggestions-btn {
+        width: 44px; /* Mantém tamanho mínimo de toque */
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0; /* Impede que os botões encolham */
+        /* Remove margens extras se houver */
+        margin: 0;
+    }
+
+    /* Ajuste no container de sugestões se necessário */
+    #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3); /* Ajusta padding */
+        border-top: 1px solid var(--border-color); /* Linha divisória */
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Garante layout flexível vertical */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(
+            100vh - 150px
+        ); /* Altura base (pode ajustar se necessário) */
+        overflow: hidden; /* Evita que conteúdo vaze durante transições */
+    }
+
+    /* Área de Mensagens: Cresce por padrão, transição suave */
+    #chat-messages {
+        flex-grow: 1; /* Ocupa o espaço disponível */
+        overflow-y: auto;
+        padding: var(--spacing-3);
+        /* Transição para suavizar a mudança de tamanho */
+        transition: flex-grow 0.3s ease, max-height 0.3s ease;
+        /* Cálculo base da altura máxima (considerando apenas a área de input) */
+        /* Ajuste o valor '70px' se a altura real da área de input for diferente */
+        max-height: calc(100% - 70px);
+    }
+
+    /* Contêiner de Sugestões: Escondido por padrão com transição */
+    #chat-suggestions-container {
+        padding: 0 var(--spacing-3); /* Padding horizontal mantido, vertical zerado */
+        overflow: hidden;
+        max-height: 0; /* Começa colapsado */
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+        border-top: none; /* Sem borda quando escondido */
+        flex-shrink: 0; /* Não deve encolher */
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS (.suggestions-visible no pai) */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3) var(--spacing-3); /* Restaura padding vertical */
+        max-height: 150px; /* Altura máxima estimada para a área de sugestões - ajuste se necessário */
+        opacity: 1;
+        border-top: 1px solid var(--border-color); /* Adiciona borda superior */
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-messages {
+        /* Reduz o espaço que pode ocupar */
+        flex-grow: 0; /* Opcional: pode remover flex-grow se max-height for suficiente */
+        /* Cálculo da altura máxima: Altura total MENOS input MENOS sugestões */
+        /* Ajuste os valores '70px' (input) e '150px' (sugestões) conforme necessário */
+        max-height: calc(100% - 70px - 150px);
+    }
+
+    /* Área de Input: Garante que não encolha e layout correto */
+    .chat-input-container {
+        flex-shrink: 0; /* Impede que a área de input encolha */
+        /* Mantém os estilos anteriores para layout em linha e alinhamento */
+        flex-direction: row;
+        align-items: flex-end;
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color); /* Borda sempre visível */
+    }
+
+    /* Garante que o textarea ainda possa crescer verticalmente (mas respeita o max-height) */
+    #chat-input {
+        /* Estilos anteriores mantidos */
+        min-height: 50px;
+        max-height: 120px;
+        flex: 1;
+        font-size: 16px !important;
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+
+    /* Botões (mantidos) */
+    #send-chat,
+    #show-suggestions-btn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0;
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Garante layout flexível vertical */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 150px); /* Altura base (pode ajustar) */
+        overflow: hidden; /* Importante para evitar overflow geral */
+    }
+
+    /* Área de Mensagens: Flexível, ocupa espaço principal */
+    #chat-messages {
+        flex: 1 1 auto; /* PERMITE crescer e encolher, base automática */
+        overflow-y: auto; /* Scroll interno */
+        padding: var(--spacing-3);
+        /* Transição suave para flex-basis ou height/max-height */
+        transition: flex-basis 0.3s ease, max-height 0.3s ease;
+        min-height: 50px; /* Garante uma altura mínima visível */
+    }
+
+    /* Contêiner de Sugestões: Sem flexibilidade, altura controlada por max-height */
+    #chat-suggestions-container {
+        flex: 0 0 auto; /* NÃO cresce, NÃO encolhe, baseia-se no conteúdo */
+        overflow: hidden;
+        padding: 0 var(--spacing-3);
+        max-height: 0; /* Começa colapsado */
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease,
+            border-top 0.3s ease;
+        border-top: none;
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
+        max-height: 150px; /* Altura máxima para as sugestões (AJUSTE SE NECESSÁRIO) */
+        opacity: 1;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS (REDUZIDA) */
+    /* Removendo a regra que mudava o flex-grow/max-height aqui.
+   Vamos confiar que a altura definida no #chat-suggestions-container
+   vai naturalmente empurrar as mensagens para cima. */
+
+    /* Área de Input: Sem flexibilidade vertical, altura baseada no conteúdo */
+    .chat-input-container {
+        flex: 0 0 auto; /* NÃO cresce, NÃO encolhe, base automática */
+        display: flex;
+        align-items: flex-end;
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Textarea: Flexível HORIZONTALMENTE dentro do seu contêiner */
+    #chat-input {
+        flex: 1 1 auto; /* Cresce/encolhe horizontalmente */
+        min-height: 50px;
+        max-height: 120px;
+        /* ... outros estilos mantidos ... */
+        resize: none;
+        overflow-y: auto;
+    }
+
+    /* Botões (mantidos) */
+    #send-chat,
+    #show-suggestions-btn {
+        flex: 0 0 44px; /* Tamanho fixo, sem encolher/crescer */
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Mantém flex column e altura */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(
+            100vh - 150px
+        ); /* Altura base (pode ajustar se necessário) */
+        overflow: hidden; /* Evita overflow geral */
+        /* Garante estilos visuais base */
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+    }
+
+    /* Área de Mensagens: Flexível, principal, PODE encolher */
+    #chat-messages {
+        flex: 1 1 auto; /* Base auto, PODE crescer (1), PODE encolher (1) */
+        overflow-y: auto; /* Scroll interno */
+        padding: var(--spacing-3);
+        transition: all 0.3s ease; /* Transição suave */
+        min-height: 50px; /* Altura mínima */
+    }
+
+    /* Contêiner de Sugestões: Sem espaço inicial, transição */
+    #chat-suggestions-container {
+        flex: 0 0 0; /* Começa sem altura base (flex-basis: 0), não cresce, não encolhe */
+        overflow: hidden;
+        opacity: 0;
+        transition: flex-basis 0.3s ease, opacity 0.3s ease, padding 0.3s ease,
+            border-top 0.3s ease;
+        padding: 0 var(--spacing-3);
+        border-top: none;
+        background-color: var(--bg-secondary); /* Fundo para quando visível */
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        /* Define uma altura base explícita ou deixa 'auto' e controla com max-height */
+        flex-basis: auto; /* Tenta altura automática baseada no conteúdo */
+        /* OU use uma altura fixa se 'auto' falhar: */
+        /* flex-basis: 180px; */ /* Aumentado um pouco para 4 botões empilhados */
+        max-height: 180px; /* Limita a altura máxima (Ajuste se necessário) */
+        overflow-y: auto; /* Scroll se sugestões excederem max-height */
+        opacity: 1;
+        padding: var(--spacing-3); /* Padding quando visível */
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    /* Nenhuma regra específica aqui - deve encolher automaticamente devido ao flex: 1 1 auto */
+
+    /* Área de Input: Sem flexibilidade vertical */
+    .chat-input-container {
+        flex: 0 0 auto; /* Não cresce/encolhe verticalmente */
+        display: flex;
+        align-items: flex-end; /* Mantém alinhamento na base */
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color);
+        background-color: var(--bg-secondary); /* Garante fundo */
+    }
+
+    /* Textarea: Flexível HORIZONTALMENTE */
+    #chat-input {
+        flex: 1 1 auto; /* Cresce/encolhe horizontalmente */
+        min-height: 50px; /* Altura mínima */
+        max-height: 120px; /* Altura máxima */
+        resize: none;
+        overflow-y: auto;
+        padding: var(--spacing-2) var(--spacing-3);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 16px !important; /* Mantém para evitar zoom iOS */
+    }
+    #chat-input:focus {
+        /* Mantém estilo de foco */
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Botões de input (Sugestão e Enviar): Tamanho Fixo */
+    #send-chat,
+    #show-suggestions-btn {
+        flex: 0 0 44px; /* Tamanho fixo */
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color var(--transition-fast),
+            color var(--transition-fast);
+    }
+    #send-chat {
+        /* Estilo específico Enviar */
+        background: linear-gradient(
+            135deg,
+            var(--primary-color),
+            var(--primary-dark)
+        );
+        color: white;
+        border: none;
+    }
+    #show-suggestions-btn {
+        /* Estilo específico Sugestão */
+        background-color: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        font-size: 20px; /* Tamanho do ícone */
+    }
+    /* Estilo opcional para botão Sugestão ativo */
+    #show-suggestions-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-dark);
+    }
+
+    /* --- AJUSTES VISUAIS PARA SUGESTÕES (BASEADO NA IMAGEM) --- */
+
+    /* Texto acima dos botões */
+    #chat-suggestions-container p {
+        text-align: center;
+        font-size: var(--font-size-xs);
+        color: var(--text-muted);
+        margin-bottom: var(--spacing-3); /* Aumenta espaço abaixo */
+    }
+
+    /* Contêiner dos botões de sugestão */
+    #chat-suggestions-container .suggestion-buttons {
+        display: flex;
+        flex-direction: column; /* Botões empilhados */
+        gap: var(--spacing-2); /* Espaço entre botões */
+    }
+
+    /* Botões de sugestão individuais */
+    #chat-suggestions-container .suggestion-btn {
+        width: 100%; /* Ocupa largura total */
+        justify-content: center; /* Centraliza texto */
+        font-size: var(--font-size-sm); /* Tamanho de fonte ajustado */
+        padding: var(--spacing-3); /* Padding interno maior */
+        /* Reutiliza estilos de .btn-secondary ou define específicos */
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        text-align: center;
+    }
+    #chat-suggestions-container .suggestion-btn:hover {
+        background-color: var(--primary-light);
+        border-color: var(--primary-color);
+        color: white;
+    }
+}
+
+/* ==================================================================== */
+/* ===== Responsividade para Mobile Pequeno (ex: até 480px) ===== */
+/* ==================================================================== */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px; /* Reduz ainda mais a base */
+    }
+
+    #main-content {
+        padding: 60px 10px 15px 10px; /* Menos padding lateral */
+    }
+
+    #sidebar {
+        width: 85%; /* Sidebar ocupa mais espaço ao abrir */
+    }
+
+    /* --- Cards --- */
+    .card,
+    .track-card,
+    .flashcard-card,
+    .mindmap-card,
+    .chunk-card,
+    .setting-group,
+    .stat-card {
+        padding: var(--spacing-3);
+    }
+
+    .chunk-header {
+        flex-direction: column; /* Empilha título e ações do chunk */
+        align-items: flex-start;
+        gap: var(--spacing-2);
+    }
+    .chunk-actions {
+        width: 100%;
+        justify-content: space-between; /* Espaça os botões */
+    }
+    .chunk-actions .btn-icon {
+        padding: var(--spacing-1);
+    }
+
+    /* Ações de artigos empilhadas */
+    .article-actions {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+    .article-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    /* Ações do card de Geração */
+    .article-card-actions {
+        flex-direction: column;
+    }
+    .article-card-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* --- Modais --- */
+    .modal-content {
+        width: 98%;
+        padding: var(--spacing-4);
+    }
+    .modal-content h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    /* --- Quiz --- */
+    .quiz-question h3 {
+        font-size: var(--font-size-base);
+    }
+    .quiz-options li {
+        padding: var(--spacing-3);
+        font-size: var(--font-size-sm);
+    }
+    .quiz-controls {
+        flex-direction: column;
+    }
+    .quiz-controls .btn {
+        width: 100%;
+    }
+
+    /* --- Configurações --- */
+    .settings-container {
+        padding: 0 10px; /* Remove padding extra */
+    }
+    .setting-group {
+        padding: var(--spacing-3);
+    }
+    .form-group label {
+        font-size: var(--font-size-sm);
+    }
+
+    /* --- Upload PDF --- */
+    .upload-section {
+        padding: var(--spacing-4) var(--spacing-3);
+    }
+    .upload-section h3 {
+        font-size: var(--font-size-sm);
+    }
+    .file-list-display {
+        font-size: 11px; /* Bem pequeno */
+    }
+
+    /* --- Dashboard --- */
+    .dashboard-stats {
+        gap: var(--spacing-3);
+    }
+    .stat-card {
+        padding: var(--spacing-4);
+    }
+    .stat-card h3 {
+        font-size: 0.8rem;
+    }
+    .stat-card .stat-number {
+        font-size: 1.6rem;
+    }
+    .quick-actions {
+        flex-direction: column; /* Empilha botões de ação */
+    }
+    .quick-actions .btn {
+        width: 100%;
+    }
+
+    /* Dentro de @media (max-width: 768px) ou menor se aplicável */
+
+    /* Permite explicitamente pan e zoom no contêiner interno do mapa no modal */
+    .mindmap-view-modal .jsmind-inner {
+        touch-action: pan-x pan-y pinch-zoom;
+        -webkit-overflow-scrolling: touch; /* Melhora a rolagem em iOS, embora o jsMind controle o pan */
+        cursor: grab; /* Indica visualmente que é arrastável */
+    }
+
+    .mindmap-view-modal .jsmind-inner:active {
+        cursor: grabbing; /* Muda o cursor ao arrastar */
+    }
+
+    /* Garante que o container do jsmind tenha tamanho e permita interação */
+    .mindmap-view-modal .modal-body > div[id^='jsmind_container_modal_'] {
+        position: absolute; /* Garante que o jsmind-inner possa se posicionar */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden; /* Controlado internamente pelo jsMind */
+    }
+
+    /* Garante que elementos SVG/Canvas recebam os eventos */
+    .mindmap-view-modal svg.jsmind,
+    .mindmap-view-modal canvas.jsmind,
+    .mindmap-view-modal jmnodes {
+        touch-action: none; /* Deixa a biblioteca jsMind controlar totalmente */
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Ajusta a altura da interface geral se necessário, dando mais espaço para mensagens */
+    #chat-interface {
+        /* Você pode experimentar um valor um pouco maior se houver espaço vertical */
+        /* Ex: height: calc(100vh - 130px); */
+        /* Mantendo o original por enquanto: */
+        height: calc(100vh - 150px);
+    }
+
+    /* Garante que a área de mensagens cresça */
+    #chat-messages {
+        flex-grow: 1; /* Garante que ocupe o espaço vertical */
+        padding: var(--spacing-3); /* Padding ligeiramente menor */
+    }
+
+    /* Contêiner do Input: Força layout em linha e alinhamento na base */
+    .chat-input-container {
+        flex-direction: row; /* Coloca itens lado a lado */
+        align-items: flex-end; /* Alinha na base (bom para textarea multi-linha) */
+        padding: var(--spacing-2) var(--spacing-3); /* Padding menor */
+        gap: var(--spacing-2); /* Espaço menor entre itens */
+    }
+
+    /* Campo de Texto (Textarea): Aumenta altura mínima */
+    #chat-input {
+        min-height: 50px; /* Altura mínima maior */
+        max-height: 120px; /* Reduz um pouco a altura máxima se necessário */
+        flex: 1; /* Garante que ocupe o espaço horizontal */
+        font-size: 16px !important; /* Mantém para evitar zoom iOS */
+        padding: var(--spacing-2) var(--spacing-3); /* Padding interno */
+    }
+
+    /* Botões: Tamanho fixo e sem encolher */
+    #send-chat,
+    #show-suggestions-btn {
+        width: 44px; /* Mantém tamanho mínimo de toque */
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0; /* Impede que os botões encolham */
+        /* Remove margens extras se houver */
+        margin: 0;
+    }
+
+    /* Ajuste no container de sugestões se necessário */
+    #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3); /* Ajusta padding */
+        border-top: 1px solid var(--border-color); /* Linha divisória */
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Garante layout flexível vertical */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(
+            100vh - 150px
+        ); /* Altura base (pode ajustar se necessário) */
+        overflow: hidden; /* Evita que conteúdo vaze durante transições */
+    }
+
+    /* Área de Mensagens: Cresce por padrão, transição suave */
+    #chat-messages {
+        flex-grow: 1; /* Ocupa o espaço disponível */
+        overflow-y: auto;
+        padding: var(--spacing-3);
+        /* Transição para suavizar a mudança de tamanho */
+        transition: flex-grow 0.3s ease, max-height 0.3s ease;
+        /* Cálculo base da altura máxima (considerando apenas a área de input) */
+        /* Ajuste o valor '70px' se a altura real da área de input for diferente */
+        max-height: calc(100% - 70px);
+    }
+
+    /* Contêiner de Sugestões: Escondido por padrão com transição */
+    #chat-suggestions-container {
+        padding: 0 var(--spacing-3); /* Padding horizontal mantido, vertical zerado */
+        overflow: hidden;
+        max-height: 0; /* Começa colapsado */
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+        border-top: none; /* Sem borda quando escondido */
+        flex-shrink: 0; /* Não deve encolher */
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS (.suggestions-visible no pai) */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3) var(--spacing-3); /* Restaura padding vertical */
+        max-height: 150px; /* Altura máxima estimada para a área de sugestões - ajuste se necessário */
+        opacity: 1;
+        border-top: 1px solid var(--border-color); /* Adiciona borda superior */
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-messages {
+        /* Reduz o espaço que pode ocupar */
+        flex-grow: 0; /* Opcional: pode remover flex-grow se max-height for suficiente */
+        /* Cálculo da altura máxima: Altura total MENOS input MENOS sugestões */
+        /* Ajuste os valores '70px' (input) e '150px' (sugestões) conforme necessário */
+        max-height: calc(100% - 70px - 150px);
+    }
+
+    /* Área de Input: Garante que não encolha e layout correto */
+    .chat-input-container {
+        flex-shrink: 0; /* Impede que a área de input encolha */
+        /* Mantém os estilos anteriores para layout em linha e alinhamento */
+        flex-direction: row;
+        align-items: flex-end;
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color); /* Borda sempre visível */
+    }
+
+    /* Garante que o textarea ainda possa crescer verticalmente (mas respeita o max-height) */
+    #chat-input {
+        /* Estilos anteriores mantidos */
+        min-height: 50px;
+        max-height: 120px;
+        flex: 1;
+        font-size: 16px !important;
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+
+    /* Botões (mantidos) */
+    #send-chat,
+    #show-suggestions-btn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        flex-shrink: 0;
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Garante layout flexível vertical */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 150px); /* Altura base (pode ajustar) */
+        overflow: hidden; /* Importante para evitar overflow geral */
+    }
+
+    /* Área de Mensagens: Flexível, ocupa espaço principal */
+    #chat-messages {
+        flex: 1 1 auto; /* PERMITE crescer e encolher, base automática */
+        overflow-y: auto; /* Scroll interno */
+        padding: var(--spacing-3);
+        /* Transição suave para flex-basis ou height/max-height */
+        transition: flex-basis 0.3s ease, max-height 0.3s ease;
+        min-height: 50px; /* Garante uma altura mínima visível */
+    }
+
+    /* Contêiner de Sugestões: Sem flexibilidade, altura controlada por max-height */
+    #chat-suggestions-container {
+        flex: 0 0 auto; /* NÃO cresce, NÃO encolhe, baseia-se no conteúdo */
+        overflow: hidden;
+        padding: 0 var(--spacing-3);
+        max-height: 0; /* Começa colapsado */
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease,
+            border-top 0.3s ease;
+        border-top: none;
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
+        max-height: 150px; /* Altura máxima para as sugestões (AJUSTE SE NECESSÁRIO) */
+        opacity: 1;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS (REDUZIDA) */
+    /* Removendo a regra que mudava o flex-grow/max-height aqui.
+   Vamos confiar que a altura definida no #chat-suggestions-container
+   vai naturalmente empurrar as mensagens para cima. */
+
+    /* Área de Input: Sem flexibilidade vertical, altura baseada no conteúdo */
+    .chat-input-container {
+        flex: 0 0 auto; /* NÃO cresce, NÃO encolhe, base automática */
+        display: flex;
+        align-items: flex-end;
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Textarea: Flexível HORIZONTALMENTE dentro do seu contêiner */
+    #chat-input {
+        flex: 1 1 auto; /* Cresce/encolhe horizontalmente */
+        min-height: 50px;
+        max-height: 120px;
+        /* ... outros estilos mantidos ... */
+        resize: none;
+        overflow-y: auto;
+    }
+
+    /* Botões (mantidos) */
+    #send-chat,
+    #show-suggestions-btn {
+        flex: 0 0 44px; /* Tamanho fixo, sem encolher/crescer */
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Dentro de @media (max-width: 768px) */
+
+    /* Contêiner principal do Chat: Mantém flex column e altura */
+    #chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: calc(
+            100vh - 150px
+        ); /* Altura base (pode ajustar se necessário) */
+        overflow: hidden; /* Evita overflow geral */
+        /* Garante estilos visuais base */
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+    }
+
+    /* Área de Mensagens: Flexível, principal, PODE encolher */
+    #chat-messages {
+        flex: 1 1 auto; /* Base auto, PODE crescer (1), PODE encolher (1) */
+        overflow-y: auto; /* Scroll interno */
+        padding: var(--spacing-3);
+        transition: all 0.3s ease; /* Transição suave */
+        min-height: 50px; /* Altura mínima */
+    }
+
+    /* Contêiner de Sugestões: Sem espaço inicial, transição */
+    #chat-suggestions-container {
+        flex: 0 0 0; /* Começa sem altura base (flex-basis: 0), não cresce, não encolhe */
+        overflow: hidden;
+        opacity: 0;
+        transition: flex-basis 0.3s ease, opacity 0.3s ease, padding 0.3s ease,
+            border-top 0.3s ease;
+        padding: 0 var(--spacing-3);
+        border-top: none;
+        background-color: var(--bg-secondary); /* Fundo para quando visível */
+    }
+
+    /* Estado QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    #chat-interface.suggestions-visible #chat-suggestions-container {
+        /* Define uma altura base explícita ou deixa 'auto' e controla com max-height */
+        flex-basis: auto; /* Tenta altura automática baseada no conteúdo */
+        /* OU use uma altura fixa se 'auto' falhar: */
+        /* flex-basis: 180px; */ /* Aumentado um pouco para 4 botões empilhados */
+        max-height: 180px; /* Limita a altura máxima (Ajuste se necessário) */
+        overflow-y: auto; /* Scroll se sugestões excederem max-height */
+        opacity: 1;
+        padding: var(--spacing-3); /* Padding quando visível */
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Área de Mensagens QUANDO SUGESTÕES ESTÃO VISÍVEIS */
+    /* Nenhuma regra específica aqui - deve encolher automaticamente devido ao flex: 1 1 auto */
+
+    /* Área de Input: Sem flexibilidade vertical */
+    .chat-input-container {
+        flex: 0 0 auto; /* Não cresce/encolhe verticalmente */
+        display: flex;
+        align-items: flex-end; /* Mantém alinhamento na base */
+        padding: var(--spacing-2) var(--spacing-3);
+        gap: var(--spacing-2);
+        border-top: 1px solid var(--border-color);
+        background-color: var(--bg-secondary); /* Garante fundo */
+    }
+
+    /* Textarea: Flexível HORIZONTALMENTE */
+    #chat-input {
+        flex: 1 1 auto; /* Cresce/encolhe horizontalmente */
+        min-height: 50px; /* Altura mínima */
+        max-height: 120px; /* Altura máxima */
+        resize: none;
+        overflow-y: auto;
+        padding: var(--spacing-2) var(--spacing-3);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 16px !important; /* Mantém para evitar zoom iOS */
+    }
+    #chat-input:focus {
+        /* Mantém estilo de foco */
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Botões de input (Sugestão e Enviar): Tamanho Fixo */
+    #send-chat,
+    #show-suggestions-btn {
+        flex: 0 0 44px; /* Tamanho fixo */
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color var(--transition-fast),
+            color var(--transition-fast);
+    }
+    #send-chat {
+        /* Estilo específico Enviar */
+        background: linear-gradient(
+            135deg,
+            var(--primary-color),
+            var(--primary-dark)
+        );
+        color: white;
+        border: none;
+    }
+    #show-suggestions-btn {
+        /* Estilo específico Sugestão */
+        background-color: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        font-size: 20px; /* Tamanho do ícone */
+    }
+    /* Estilo opcional para botão Sugestão ativo */
+    #show-suggestions-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-dark);
+    }
+
+    /* --- AJUSTES VISUAIS PARA SUGESTÕES (BASEADO NA IMAGEM) --- */
+
+    /* Texto acima dos botões */
+    #chat-suggestions-container p {
+        text-align: center;
+        font-size: var(--font-size-xs);
+        color: var(--text-muted);
+        margin-bottom: var(--spacing-3); /* Aumenta espaço abaixo */
+    }
+
+    /* Contêiner dos botões de sugestão */
+    #chat-suggestions-container .suggestion-buttons {
+        display: flex;
+        flex-direction: column; /* Botões empilhados */
+        gap: var(--spacing-2); /* Espaço entre botões */
+    }
+
+    /* Botões de sugestão individuais */
+    #chat-suggestions-container .suggestion-btn {
+        width: 100%; /* Ocupa largura total */
+        justify-content: center; /* Centraliza texto */
+        font-size: var(--font-size-sm); /* Tamanho de fonte ajustado */
+        padding: var(--spacing-3); /* Padding interno maior */
+        /* Reutiliza estilos de .btn-secondary ou define específicos */
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        text-align: center;
+    }
+    #chat-suggestions-container .suggestion-btn:hover {
+        background-color: var(--primary-light);
+        border-color: var(--primary-color);
+        color: white;
+    }
+}
+
+/* ====================================================== */
+/* ===== FIM: NOVAS REGRAS DE RESPONSIVIDADE ===== */
+/* ====================================================== */
