@@ -1,0 +1,216 @@
+/* Estilos para a seleção de artigos de lei no Quiz Adaptativo */
+
+.articles-selection {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.articles-filter {
+    margin-bottom: 15px;
+}
+
+.articles-filter input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.articles-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid #007bff;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-small:hover {
+    background-color: #0056b3;
+}
+
+.btn-small:nth-child(2) {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-small:nth-child(2):hover {
+    background-color: #545b62;
+}
+
+.articles-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.article-item {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.article-item:last-child {
+    border-bottom: none;
+}
+
+.article-item:hover {
+    background-color: #f8f9fa;
+}
+
+.article-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    cursor: pointer;
+    gap: 10px;
+}
+
+.article-checkbox {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.article-info {
+    flex: 1;
+}
+
+.article-reference {
+    font-weight: bold;
+    color: #007bff;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.article-subject {
+    color: #333;
+    font-size: 13px;
+    margin-bottom: 2px;
+    line-height: 1.4;
+}
+
+.article-law {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.selected-articles-summary {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #e7f3ff;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    color: #0056b3;
+}
+
+.no-articles {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+}
+
+/* Dark mode styles */
+.dark-mode .articles-selection {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+.dark-mode .articles-filter input[type="text"] {
+    background-color: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+}
+
+.dark-mode .articles-list {
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+.dark-mode .article-item {
+    border-bottom-color: #718096;
+}
+
+.dark-mode .article-item:hover {
+    background-color: #2d3748;
+}
+
+.dark-mode .article-reference {
+    color: #63b3ed;
+}
+
+.dark-mode .article-subject {
+    color: #e2e8f0;
+}
+
+.dark-mode .article-law {
+    color: #a0aec0;
+}
+
+.dark-mode .selected-articles-summary {
+    background-color: #2b6cb0;
+    color: #bee3f8;
+}
+
+.dark-mode .no-articles {
+    color: #a0aec0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .articles-actions {
+        flex-direction: column;
+    }
+    
+    .articles-list {
+        max-height: 200px;
+    }
+    
+    .article-checkbox-label {
+        padding: 10px;
+    }
+    
+    .article-reference {
+        font-size: 13px;
+    }
+    
+    .article-subject {
+        font-size: 12px;
+    }
+    
+    .article-law {
+        font-size: 11px;
+    }
+}
+
+/* Animation for showing/hiding articles selection */
+.articles-selection {
+    transition: all 0.3s ease-in-out;
+}
+
+.articles-selection[style*="display: none"] {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.articles-selection[style*="display: block"] {
+    opacity: 1;
+    max-height: 500px;
+}

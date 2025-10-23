@@ -1,0 +1,6872 @@
+/* Modern CSS Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Color Palette */
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #3b82f6;
+    --secondary-color: #10b981;
+    --secondary-dark: #059669;
+    --accent-color: #f59e0b;
+    --accent-dark: #d97706;
+
+    /* Neutral Colors */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+
+    /* Status Colors */
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --info-color: #3b82f6;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+
+    /* Spacing */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-10: 2.5rem;
+    --spacing-12: 3rem;
+    --spacing-16: 4rem;
+
+    /* Border Radius */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+        0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+        0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+}
+
+/* Dark Mode Variables */
+body.dark-mode {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #475569;
+    --card-bg: #1e293b;
+    --sidebar-bg: #0f172a;
+}
+
+/* Light Mode Variables */
+body:not(.dark-mode) {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --card-bg: #ffffff;
+    --sidebar-bg: #f8fafc;
+}
+
+/* Base Styles */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    transition: background-color var(--transition-normal),
+        color var(--transition-normal);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: var(--spacing-4);
+    color: var(--text-primary);
+}
+
+h1 {
+    font-size: var(--font-size-4xl);
+}
+h2 {
+    font-size: var(--font-size-3xl);
+}
+h3 {
+    font-size: var(--font-size-2xl);
+}
+h4 {
+    font-size: var(--font-size-xl);
+}
+h5 {
+    font-size: var(--font-size-lg);
+}
+h6 {
+    font-size: var(--font-size-base);
+}
+
+p {
+    margin-bottom: var(--spacing-4);
+    color: var(--text-secondary);
+}
+
+/* Layout */
+#app {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+/* Sidebar */
+#sidebar {
+    width: 280px;
+    background: linear-gradient(
+        180deg,
+        var(--sidebar-bg) 0%,
+        var(--bg-secondary) 100%
+    );
+    border-right: 1px solid var(--border-color);
+    padding: var(--spacing-6);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform var(--transition-normal);
+}
+
+.logo {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-8);
+    text-align: center;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#sidebar nav ul {
+    list-style: none;
+}
+
+#sidebar nav ul li {
+    margin-bottom: var(--spacing-2);
+}
+
+#sidebar nav ul li a {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-3) var(--spacing-4);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+#sidebar nav ul li a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transition: left var(--transition-slow);
+}
+
+#sidebar nav ul li a:hover::before {
+    left: 100%;
+}
+
+#sidebar nav ul li a:hover,
+#sidebar nav ul li a.active {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Main Content */
+#content {
+    flex: 1;
+    margin-left: 280px;
+    padding: var(--spacing-8);
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+}
+
+/* Sections */
+section {
+    display: none;
+    animation: fadeIn var(--transition-normal) ease-in-out;
+}
+
+section.active-section {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-3) var(--spacing-6);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width var(--transition-normal), height var(--transition-normal);
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-200);
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: linear-gradient(
+        135deg,
+        var(--success-color),
+        var(--secondary-dark)
+    );
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(
+        135deg,
+        var(--warning-color),
+        var(--accent-dark)
+    );
+    color: white;
+}
+
+.btn-error {
+    background: linear-gradient(135deg, var(--error-color), #dc2626);
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-icon {
+    padding: var(--spacing-2);
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: var(--radius-md);
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.btn-icon:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Dashboard */
+.advanced-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.stats-section,
+.streak-section,
+.goals-section,
+.achievements-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-4);
+    background: linear-gradient(
+        135deg,
+        var(--bg-tertiary),
+        var(--bg-secondary)
+    );
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    font-size: var(--font-size-2xl);
+    margin-right: var(--spacing-3);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    border-radius: var(--radius-lg);
+    color: white;
+}
+
+.stat-info h4 {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-info p {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Streak Display */
+.streak-display {
+    text-align: center;
+}
+
+.current-streak {
+    margin-bottom: var(--spacing-6);
+}
+
+.streak-number {
+    display: block;
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(
+        135deg,
+        var(--accent-color),
+        var(--error-color)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+}
+
+.streak-label {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.streak-calendar {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-4);
+}
+
+.calendar-day {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.calendar-day.studied {
+    background: linear-gradient(
+        135deg,
+        var(--success-color),
+        var(--secondary-dark)
+    );
+    color: white;
+    border-color: var(--success-color);
+}
+
+/* Goals */
+.goals-list {
+    space-y: var(--spacing-4);
+}
+
+.goal-item {
+    padding: var(--spacing-4);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-4);
+}
+
+.goal-info h4 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-3);
+}
+
+.goal-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: var(--gray-200);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    border-radius: var(--radius-sm);
+    transition: width var(--transition-normal);
+}
+
+/* Achievements */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.achievement-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border-color);
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.achievement-badge.unlocked {
+    border-color: var(--accent-color);
+    background: linear-gradient(
+        135deg,
+        rgba(245, 158, 11, 0.1),
+        rgba(217, 119, 6, 0.1)
+    );
+}
+
+.achievement-badge.locked {
+    opacity: 0.5;
+}
+
+.achievement-icon {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-2);
+}
+
+.achievement-name {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Flashcards */
+.flashcard-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.flashcard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.flashcard-filters {
+    margin-bottom: var(--spacing-8);
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-4);
+}
+
+.filter-btn {
+    padding: var(--spacing-2) var(--spacing-4);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.flashcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+}
+
+.flashcard-preview {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-5);
+    transition: all var(--transition-fast);
+}
+
+.flashcard-preview:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.flashcard-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-3);
+}
+
+.source {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+}
+
+.difficulty {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+.difficulty.fácil {
+    background-color: var(--success-color);
+    color: white;
+}
+.difficulty.médio {
+    background-color: var(--warning-color);
+    color: white;
+}
+.difficulty.difícil {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.question-preview {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-4);
+}
+
+/* Flashcard Review */
+.flashcard-review {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.flashcard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+}
+
+.review-type {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.card-counter {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.flashcard {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-8);
+    box-shadow: var(--shadow-xl);
+    margin-bottom: var(--spacing-6);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.flashcard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+}
+
+.flashcard-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.flashcard-question h3,
+.flashcard-answer h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-xl);
+}
+
+.flashcard-question p,
+.flashcard-answer p {
+    font-size: var(--font-size-lg);
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.card-source {
+    margin-top: var(--spacing-4);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+.card-source small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.flashcard-controls {
+    margin-top: var(--spacing-6);
+    text-align: center;
+}
+
+.quality-buttons {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-again {
+    background: linear-gradient(135deg, var(--error-color), #dc2626);
+}
+.btn-hard {
+    background: linear-gradient(
+        135deg,
+        var(--warning-color),
+        var(--accent-dark)
+    );
+}
+.btn-good {
+    background: linear-gradient(
+        135deg,
+        var(--success-color),
+        var(--secondary-dark)
+    );
+}
+.btn-easy {
+    background: linear-gradient(135deg, var(--info-color), var(--primary-dark));
+}
+
+.btn-again,
+.btn-hard,
+.btn-good,
+.btn-easy {
+    color: white;
+    font-weight: 500;
+    min-width: 100px;
+}
+
+/* Quiz */
+.quiz-start {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.quiz-config {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.config-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+}
+
+.config-section h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+}
+
+.config-row {
+    margin-bottom: var(--spacing-4);
+}
+
+.config-row label {
+    display: block;
+    margin-bottom: var(--spacing-2);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.config-row select,
+.config-row input {
+    width: 100%;
+    padding: var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+}
+
+.config-row select:focus,
+.config-row input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.config-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-3);
+}
+
+.config-checkbox input[type='checkbox'] {
+    width: auto;
+    margin-right: var(--spacing-3);
+    transform: scale(1.2);
+}
+
+.quiz-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.quiz-history,
+.quiz-stats {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-3);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Quiz Question */
+.quiz-question {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.quiz-progress {
+    margin-bottom: var(--spacing-6);
+}
+
+.quiz-progress p {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-3);
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--gray-200);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: var(--spacing-6);
+}
+
+.quiz-question h3 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-6);
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.quiz-options {
+    list-style: none;
+    margin-bottom: var(--spacing-8);
+}
+
+.quiz-options li {
+    padding: var(--spacing-4) var(--spacing-5);
+    margin-bottom: var(--spacing-3);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.quiz-options li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(
+        180deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    transform: scaleY(0);
+    transition: transform var(--transition-fast);
+}
+
+.quiz-options li:hover::before,
+.quiz-options li.selected::before {
+    transform: scaleY(1);
+}
+
+.quiz-options li:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px);
+}
+
+.quiz-options li.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.quiz-options li.correct {
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.quiz-options li.incorrect {
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.quiz-controls {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+}
+
+/* Study Track */
+.topic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-8);
+    padding: var(--spacing-6);
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    color: white;
+    border-radius: var(--radius-xl);
+}
+
+.topic-stats {
+    display: flex;
+    gap: var(--spacing-6);
+    font-size: var(--font-size-sm);
+}
+
+.chunks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.chunk-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.chunk-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.chunk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.chunk-header h4 {
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.chunk-actions {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.chunk-preview,
+.chunk-expanded {
+    margin-bottom: var(--spacing-4);
+}
+
+.chunk-preview p,
+.chunk-expanded p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-8);
+}
+
+.pagination-controls button {
+    padding: var(--spacing-3) var(--spacing-5);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Chat */
+#chat-interface {
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+#chat-messages {
+    flex: 1;
+    padding: var(--spacing-6);
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
+}
+
+.user-message,
+.ai-message {
+    max-width: 80%;
+    padding: var(--spacing-4) var(--spacing-5);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.5;
+    position: relative;
+    animation: messageSlide var(--transition-normal) ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-message {
+    align-self: flex-end;
+    margin-left: auto;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    border-bottom-right-radius: var(--radius-md);
+}
+
+.ai-message {
+    align-self: flex-start;
+    margin-right: auto;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-bottom-left-radius: var(--radius-md);
+}
+
+.message-content {
+    margin: 0;
+}
+
+.message-content mark {
+    background-color: var(--accent-color);
+    color: white;
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+}
+
+.chat-input-container {
+    display: flex;
+    padding: var(--spacing-5);
+    background-color: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    gap: var(--spacing-3);
+    align-items: center;
+}
+
+#chat-input {
+    flex: 1;
+    padding: var(--spacing-4) var(--spacing-5);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    outline: none;
+    transition: all var(--transition-fast);
+    resize: none;
+    min-height: 50px;
+}
+
+#chat-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+#send-chat {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#send-chat:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Settings */
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.setting-group {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.setting-group:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.setting-group h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: var(--spacing-5);
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-2);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.form-control,
+.file-input {
+    width: 100%;
+    padding: var(--spacing-3);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+}
+
+.form-control:focus,
+.file-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.file-input {
+    cursor: pointer;
+    padding: var(--spacing-4);
+    background: linear-gradient(
+        135deg,
+        var(--bg-tertiary),
+        var(--bg-secondary)
+    );
+    border-style: dashed;
+}
+
+.file-input:hover {
+    border-color: var(--primary-color);
+    background: linear-gradient(
+        135deg,
+        rgba(37, 99, 235, 0.05),
+        var(--bg-tertiary)
+    );
+}
+
+/* Upload Section */
+.upload-section {
+    margin-top: var(--spacing-8);
+    padding: var(--spacing-6);
+    background: linear-gradient(
+        135deg,
+        var(--bg-tertiary),
+        var(--bg-secondary)
+    );
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.upload-section h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.upload-section .file-input {
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+
+.upload-section .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-8);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border-color);
+}
+
+.modal-content h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-6);
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: flex-end;
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Detailed Stats Modal */
+.detailed-stats-modal {
+    max-width: 800px;
+}
+
+.detailed-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+}
+
+.stats-category {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-5);
+    border: 1px solid var(--border-color);
+}
+
+.stats-category h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row span {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.stat-row strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Achievement Notification */
+.achievement-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--success-color), #10b981);
+    color: white;
+    padding: var(--spacing-4) var(--spacing-6);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    transform: translateX(100%);
+    transition: transform var(--transition-slow);
+    max-width: 300px;
+}
+
+.achievement-notification.show {
+    transform: translateX(0);
+}
+
+.achievement-content h4 {
+    margin: 0 0 var(--spacing-2) 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.achievement-content p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+}
+
+/* Quiz Configuration Styles */
+.quiz-config {
+    display: grid;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+}
+
+.config-section {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-5);
+    border: 1px solid var(--border-color);
+}
+
+.config-section h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.config-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+}
+
+.config-row:last-child {
+    margin-bottom: 0;
+}
+
+.config-row label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.config-row select {
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    min-width: 150px;
+}
+
+.config-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-3);
+}
+
+.config-checkbox:last-child {
+    margin-bottom: 0;
+}
+
+.config-checkbox input[type='checkbox'] {
+    width: auto;
+    margin: 0;
+}
+
+.config-checkbox label {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Quiz Actions */
+.quiz-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: center;
+    margin: var(--spacing-6) 0;
+}
+
+/* Legal Articles Styles */
+.legal-articles-section {
+    margin-top: var(--spacing-4);
+    padding: var(--spacing-4);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.legal-articles-section h5 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+}
+
+.article-item {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-3);
+    border: 1px solid var(--border-color);
+    transition: var(--transition-fast);
+}
+
+.article-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.article-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
+}
+
+.article-checkbox {
+    margin-top: 2px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+}
+
+.article-title {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+}
+
+.article-details {
+    margin-left: calc(16px + var(--spacing-3));
+}
+
+.article-subject,
+.article-law,
+.article-text,
+.article-context {
+    margin: var(--spacing-1) 0;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+}
+
+.article-subject {
+    color: var(--text-primary);
+}
+
+.article-law {
+    color: var(--text-secondary);
+}
+
+.article-text {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.article-context {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: var(--font-size-2xs);
+}
+
+.article-actions {
+    display: flex;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.article-actions .btn {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+.no-articles {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: var(--spacing-4) 0;
+}
+
+.re-extract-articles {
+    display: block;
+    margin: var(--spacing-3) auto 0;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-4);
+}
+
+/* Article Generation Modal */
+.article-generation-modal {
+    max-width: 700px;
+}
+
+.selected-articles-summary {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    border: 1px solid var(--border-color);
+}
+
+.selected-articles-summary h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-3);
+    font-size: var(--font-size-base);
+}
+
+.selected-articles-summary ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.selected-articles-summary li {
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+}
+
+.selected-articles-summary li:last-child {
+    border-bottom: none;
+}
+
+.generation-options {
+    margin-bottom: var(--spacing-6);
+}
+
+.generation-options h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-base);
+}
+
+.option-group {
+    margin-bottom: var(--spacing-4);
+}
+
+.option-group label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+.option-group input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+}
+
+.option-group select {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-2);
+}
+
+/* Progress Modal */
+.progress-info {
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin: var(--spacing-4) 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    transition: width var(--transition-normal);
+    border-radius: var(--radius-sm);
+}
+
+/* Chunk card enhancements for articles */
+.chunk-card {
+    position: relative;
+}
+
+.chunk-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    font-size: 14px;
+}
+
+.chunk-actions .btn-icon:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.chunk-actions .btn-icon:active {
+    transform: scale(0.95);
+}
+
+/* Quiz History and Stats */
+.quiz-history,
+.quiz-stats {
+    margin-top: var(--spacing-6);
+    padding: var(--spacing-5);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.quiz-history h4,
+.quiz-stats h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.quiz-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+}
+
+.quiz-history-item:last-child {
+    border-bottom: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-3);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+input:checked + .slider {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-8);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    animation: slideUp var(--transition-normal) ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-4);
+    justify-content: flex-end;
+    margin-top: var(--spacing-6);
+}
+
+/* Notifications */
+.achievement-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(
+        135deg,
+        var(--accent-color),
+        var(--accent-dark)
+    );
+    color: white;
+    padding: var(--spacing-5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 3000;
+    transform: translateX(400px);
+    transition: transform var(--transition-normal);
+    max-width: 300px;
+}
+
+.achievement-notification.show {
+    transform: translateX(0);
+}
+
+.achievement-content h4 {
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-lg);
+}
+
+.achievement-content p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    #sidebar {
+        transform: translateX(-100%);
+    }
+
+    #sidebar.open {
+        transform: translateX(0);
+    }
+
+    #content {
+        margin-left: 0;
+        padding: var(--spacing-6);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --font-size-4xl: 2rem;
+        --font-size-3xl: 1.5rem;
+        --font-size-2xl: 1.25rem;
+    }
+
+    #content {
+        padding: var(--spacing-4);
+    }
+
+    .chunks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quiz-config {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .user-message,
+    .ai-message {
+        max-width: 95%;
+    }
+
+    .quality-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .quiz-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .streak-calendar {
+        flex-wrap: wrap;
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 95%;
+        padding: var(--spacing-6);
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .achievement-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .flashcard {
+        padding: var(--spacing-6);
+        min-height: 300px;
+    }
+
+    .topic-header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-4);
+    }
+
+    .topic-stats {
+        justify-content: center;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles for keyboard navigation */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --text-muted: var(--text-secondary);
+    }
+
+    .card {
+        border-width: 2px;
+    }
+}
+
+/* Print styles */
+@media print {
+    #sidebar {
+        display: none;
+    }
+
+    #content {
+        margin-left: 0;
+    }
+
+    .btn {
+        display: none;
+    }
+
+    .card {
+        break-inside: avoid;
+    }
+}
+
+/* styles.css - ADICIONAR ESTAS REGRAS DE RESPONSIVIDADE */
+
+/* Estrutura principal responsiva */
+#app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Menu Mobile - inicialmente oculto */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    width: 44px;
+    height: 44px;
+}
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+.mobile-overlay.active {
+    display: block;
+}
+
+/* Sidebar para desktop */
+#sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+/* Conteúdo principal */
+#main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease;
+}
+
+/* Responsividade para Tablets (768px a 1024px) */
+@media (max-width: 1024px) {
+    #sidebar {
+        width: 250px;
+    }
+
+    .discipline-blocks {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chunks-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsividade para Mobile (até 768px) */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 999;
+    }
+
+    #sidebar.active {
+        transform: translateX(0);
+        left: 0;
+    }
+
+    #main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 70px 15px 20px 15px;
+    }
+
+    /* Ajustes nos grids */
+    .discipline-blocks {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .chunks-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .flashcard-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    /* Ajustes nos cards */
+    .discipline-block,
+    .chunk-card {
+        padding: 15px;
+        margin: 5px 0;
+    }
+
+    /* Ajustes nos modais */
+    .modal-content {
+        width: 95%;
+        margin: 10px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .article-generation-modal {
+        width: 95%;
+    }
+
+    /* Ajustes nos formulários */
+    .config-section {
+        padding: 10px;
+    }
+
+    .config-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .config-row label {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    /* Ajustes no chat */
+    #chat-messages {
+        max-height: 50vh;
+        padding: 10px;
+    }
+
+    .chat-input-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #chat-input {
+        font-size: 16px; /* Prevenir zoom no iOS */
+        min-height: 44px;
+    }
+
+    /* Ajustes na barra de progresso */
+    .progress-info {
+        padding: 15px;
+    }
+
+    /* Ajustes nos botões para touch */
+    button,
+    .btn {
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Ajustes nos headers das seções */
+    section h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    /* Ajustes nas ações dos chunks */
+    .chunk-actions {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .chunk-actions .btn-icon {
+        margin: 2px;
+    }
+
+    /* Ajustes nas listas de artigos */
+    .articles-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .article-item {
+        padding: 10px;
+        margin: 5px 0;
+    }
+
+    /* Ajustes nas opções de quiz */
+    .quiz-options li {
+        padding: 15px;
+        margin: 8px 0;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Ajustes nos controles de qualidade */
+    .quality-buttons {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .quality-buttons button {
+        width: 100%;
+    }
+
+    /* Ajustes na paginação */
+    .pagination-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .pagination-controls button {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Responsividade para Mobile Pequeno (até 480px) */
+@media (max-width: 480px) {
+    #main-content {
+        padding: 60px 10px 15px 10px;
+    }
+
+    #sidebar {
+        width: 85%;
+    }
+
+    .modal-content {
+        width: 98%;
+        margin: 5px auto;
+    }
+
+    .chunk-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .chunk-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .article-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .article-actions button {
+        width: 100%;
+    }
+
+    .quiz-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quiz-controls button {
+        width: 100%;
+    }
+
+    .settings-container {
+        padding: 10px;
+    }
+
+    .setting-group {
+        padding: 15px 10px;
+    }
+
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .form-group label {
+        margin-bottom: 5px;
+    }
+
+    /* Ajustes no upload de PDF */
+    .upload-section {
+        padding: 15px 10px;
+    }
+
+    .file-input {
+        width: 100%;
+    }
+
+    /* Ajustes no dashboard avançado */
+    .advanced-dashboard .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .streak-display {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .quick-actions-advanced {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-actions-advanced button {
+        width: 100%;
+    }
+}
+
+/* Melhorias de usabilidade para touch */
+@media (hover: none) and (pointer: coarse) {
+    button:hover,
+    .btn:hover {
+        transform: none;
+    }
+
+    .quiz-options li:hover {
+        transform: none;
+        background: var(--card-bg);
+    }
+
+    .quiz-options li:active {
+        background: var(--primary-color);
+        color: white;
+    }
+}
+
+/* Prevenir zoom em inputs no iOS */
+@media (max-width: 768px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Ajustes específicos para o menu mobile */
+#sidebar nav ul {
+    padding: 0;
+    margin: 20px 0;
+}
+
+#sidebar nav ul li {
+    margin: 8px 0;
+}
+
+#sidebar nav ul li a {
+    display: block;
+    padding: 12px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+#sidebar nav ul li a:hover,
+#sidebar nav ul li a.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Ajustes na seção de upload para mobile */
+.upload-section {
+    margin-top: auto;
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.upload-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* Garantir que os modais sejam sempre centralizados e responsivos */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 25px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Ajustes para a geração de questões com barra de progresso */
+.progress-info {
+    text-align: center;
+    padding: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+#quiz-progress-details {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ===== NOVAS REGRAS PARA SIDEBAR RECOLHÍVEL ===== */
+
+/* Header da sidebar com botão de toggle */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Sidebar recolhida */
+#sidebar.collapsed {
+    width: 60px;
+}
+
+#sidebar.collapsed .sidebar-header .logo,
+#sidebar.collapsed nav,
+#sidebar.collapsed .upload-section {
+    display: none;
+}
+
+#sidebar.collapsed .sidebar-toggle {
+    margin: 0 auto;
+    transform: rotate(180deg);
+}
+
+/* Conteúdo principal quando sidebar está recolhida */
+#sidebar.collapsed + #main-content {
+    margin-left: 60px;
+}
+
+/* Transições suaves */
+#sidebar,
+#main-content {
+    transition: all 0.3s ease;
+}
+
+/* Ajustes específicos para quando a sidebar está recolhida */
+#sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Esconder o toggle da sidebar em mobile */
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: none;
+    }
+
+    #sidebar.collapsed {
+        width: 280px;
+        transform: translateX(-100%);
+    }
+
+    #sidebar.collapsed + #main-content {
+        margin-left: 0;
+    }
+}
+
+/* ===== CORREÇÕES DO LAYOUT ATUAL ===== */
+
+/* Garantir que o app-container ocupe toda a altura */
+#app-container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Sidebar padrão para desktop */
+#sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+}
+
+/* Conteúdo principal */
+#main-content {
+    flex: 1;
+    padding: 20px;
+    margin-left: 280px; /* Largura da sidebar */
+    transition: all 0.3s ease;
+    min-height: 100vh;
+    background: var(--bg-color);
+}
+
+/* Logo styling */
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Navegação da sidebar */
+#sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar nav ul li {
+    margin: 5px 0;
+}
+
+#sidebar nav ul li a {
+    display: block;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+#sidebar nav ul li a:hover,
+#sidebar nav ul li a.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Seção de upload */
+.upload-section {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.upload-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* Menu Mobile - inicialmente oculto */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    width: 44px;
+    height: 44px;
+}
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+.mobile-overlay.active {
+    display: block;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    #sidebar {
+        width: 250px;
+    }
+
+    #main-content {
+        margin-left: 250px;
+    }
+
+    #sidebar.collapsed {
+        width: 60px;
+    }
+
+    #sidebar.collapsed + #main-content {
+        margin-left: 60px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 999;
+    }
+
+    #sidebar.active {
+        transform: translateX(0);
+        left: 0;
+    }
+
+    #main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 70px 15px 20px 15px;
+    }
+
+    /* Garantir que a sidebar não fique recolhida em mobile */
+    #sidebar.collapsed {
+        width: 280px;
+        transform: translateX(-100%);
+    }
+
+    #sidebar.collapsed.active {
+        transform: translateX(0);
+    }
+
+    #sidebar.collapsed + #main-content {
+        margin-left: 0;
+    }
+}
+
+/* Mobile Pequeno */
+@media (max-width: 480px) {
+    #main-content {
+        padding: 60px 10px 15px 10px;
+    }
+
+    #sidebar {
+        width: 85%;
+    }
+}
+
+/* ===== MELHORIAS VISUAIS ===== */
+
+/* Garantir que as seções tenham espaçamento adequado */
+section {
+    padding: 20px 0;
+}
+
+/* Ajustes nos cards para o novo layout */
+.discipline-block,
+.chunk-card,
+.stat-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.discipline-block:hover,
+.chunk-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Ajustes no dashboard */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.stat-card {
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary-color), #4a6fff);
+    color: white;
+    padding: 25px;
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Ajustes nos botões de ação rápida */
+.quick-actions {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.quick-actions button {
+    flex: 1;
+    min-width: 150px;
+    padding: 15px;
+    font-size: 1rem;
+}
+
+/* Melhorias na área de chat */
+#chat-interface {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+#chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: var(--card-bg);
+}
+
+.chat-input-container {
+    display: flex;
+    gap: 10px;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Ajustes nos formulários de configuração */
+.settings-container {
+    max-width: 800px;
+}
+
+.setting-group {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.setting-group h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.form-group label {
+    min-width: 150px;
+    font-weight: 500;
+}
+
+.form-control {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Switch de tema */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: '';
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* ADICIONAR ESTE CSS PARA MELHORAR O VISUAL */
+.stats-section {
+    grid-column: 1 / -1;
+}
+
+.stats-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-6);
+}
+
+.stat-card {
+    text-align: center;
+    padding: var(--spacing-6);
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    font-size: var(--font-size-3xl);
+    margin: 0 auto var(--spacing-3) auto;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-info h4 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--spacing-2);
+    color: white;
+}
+
+.stat-info p {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+/* ===== NOVOS ESTILOS PARA TRILHA DE ESTUDO ===== */
+
+/* Header e controles */
+.tracks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+}
+
+.tracks-controls {
+    display: flex;
+    gap: var(--spacing-4);
+    align-items: center;
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.filter-section label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.filter-select {
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    min-width: 150px;
+}
+
+/* Seções */
+.favorites-section,
+.all-tracks-section,
+.archived-section {
+    margin-bottom: var(--spacing-8);
+}
+
+.section-title {
+    font-size: var(--font-size-xl);
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-2);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.archived-section details {
+    margin-bottom: var(--spacing-4);
+}
+
+.archived-section summary {
+    cursor: pointer;
+    padding: var(--spacing-2) 0;
+}
+
+.archived-section summary:hover {
+    color: var(--primary-color);
+}
+
+/* Grid de trilhas */
+.tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--spacing-6);
+}
+
+.favorites-grid .track-card {
+    border-left: 4px solid var(--accent-color);
+}
+
+.archived-grid .track-card {
+    opacity: 0.7;
+    background-color: var(--bg-tertiary);
+}
+
+/* Cards de trilha */
+.track-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.track-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.track-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+.track-card:hover::before {
+    opacity: 1;
+}
+
+.track-card.favorite {
+    border-left: 4px solid var(--accent-color);
+}
+
+.track-card.archived {
+    opacity: 0.7;
+    background-color: var(--bg-tertiary);
+}
+
+/* Header do card */
+.track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-4);
+    gap: var(--spacing-3);
+}
+
+.track-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.3;
+    flex: 1;
+    word-break: break-word;
+}
+
+.track-actions {
+    display: flex;
+    gap: var(--spacing-1);
+    flex-shrink: 0;
+}
+
+.track-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    padding: var(--spacing-1);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.track-action-btn:hover {
+    background-color: var(--bg-tertiary);
+    transform: scale(1.1);
+}
+
+.track-action-btn.favorite-btn:hover {
+    background-color: rgba(245, 158, 11, 0.1);
+}
+
+.track-action-btn.delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Estatísticas do card */
+.track-stats {
+    display: flex;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.track-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.stat-icon {
+    font-size: var(--font-size-base);
+}
+
+.stat-text {
+    font-weight: 500;
+}
+
+/* Footer do card */
+.track-footer {
+    display: flex;
+    gap: var(--spacing-3);
+}
+
+.track-footer .btn {
+    flex: 1;
+    text-align: center;
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+
+/* Modal de confirmação */
+.confirmation-modal {
+    max-width: 450px;
+}
+
+.confirmation-message {
+    margin-bottom: var(--spacing-6);
+    line-height: 1.6;
+}
+
+.confirmation-message p {
+    margin-bottom: var(--spacing-3);
+}
+
+.warning-text {
+    color: var(--error-color);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: flex-end;
+}
+
+/* Estado vazio */
+.no-tracks {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--spacing-8);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .tracks-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tracks-controls {
+        justify-content: space-between;
+    }
+
+    .tracks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .track-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .track-actions {
+        align-self: flex-end;
+        margin-top: var(--spacing-2);
+    }
+
+    .track-stats {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+
+    .confirmation-actions {
+        flex-direction: column;
+    }
+}
+
+/* === NOVOS ESTILOS PARA ARTIGOS === */
+
+/* Botão Voltar */
+.topic-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+}
+
+#back-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+/* Seção de Artigos Favoritos */
+.favorite-articles-section {
+    background: linear-gradient(
+        135deg,
+        rgba(245, 158, 11, 0.1),
+        rgba(255, 215, 0, 0.05)
+    );
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+}
+
+.favorite-articles-section h6 {
+    color: var(--accent-color);
+    margin-bottom: var(--spacing-3);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.favorite-articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.favorite-article-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-3);
+    border-left: 3px solid var(--accent-color);
+}
+
+.favorite-article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-2);
+}
+
+.favorite-article-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.no-favorites {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--spacing-4);
+}
+
+/* Artigos com destaque de uso */
+.article-item.favorite {
+    border-left: 3px solid var(--accent-color);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.used-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    margin-left: var(--spacing-2);
+}
+
+.article-usage {
+    display: flex;
+    gap: var(--spacing-3);
+    margin: var(--spacing-2) 0;
+    flex-wrap: wrap;
+}
+
+.usage-badge,
+.correct-answers,
+.incorrect-answers {
+    font-size: var(--font-size-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+}
+
+.correct-answers {
+    color: var(--success-color);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.incorrect-answers {
+    color: var(--error-color);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Header do artigo melhorado */
+.article-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
+}
+
+.article-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.favorite-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.favorite-toggle:hover {
+    transform: scale(1.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .topic-header-top {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .article-usage {
+        flex-direction: column;
+        gap: var(--spacing-2);
+    }
+
+    .favorite-article-stats {
+        flex-direction: column;
+        gap: var(--spacing-1);
+    }
+}
+
+/* === SCROLL PARA LISTA DE FAVORITOS === */
+.favorite-articles-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-3);
+    background-color: var(--bg-secondary);
+    margin-bottom: var(--spacing-4);
+}
+
+.favorite-articles-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.favorite-articles-list::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+}
+
+.favorite-articles-list::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: var(--radius-sm);
+}
+
+.favorite-articles-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Ajustes nos itens de favoritos */
+.favorite-article-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
+    transition: all var(--transition-fast);
+}
+
+.favorite-article-item:last-child {
+    margin-bottom: 0;
+}
+
+.favorite-article-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Novos estilos para Flashcards */
+.flashcards-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.generation-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tracks-selection {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.track-section {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.track-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.track-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.track-header h4 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.article-count {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
+
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.article-card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+.article-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.article-select {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    margin: 0;
+}
+
+.article-checkbox {
+    margin-right: 8px;
+    margin-top: 4px;
+}
+
+.article-info {
+    flex: 1;
+}
+
+.article-reference {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.article-subject {
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: var(--text-light);
+}
+
+.article-law {
+    font-size: 0.8em;
+    color: var(--text-lighter);
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.generation-options {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.generate-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    margin-top: 16px;
+}
+
+.existing-flashcards {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.flashcards-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: var(--bg-secondary);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.9em;
+}
+
+.flashcards-filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-size: 0.9em;
+    margin-bottom: 4px;
+    color: var(--text-light);
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-color);
+}
+
+.flashcards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+}
+
+.flashcard-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+
+.flashcard-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.flashcard-item.archived {
+    opacity: 0.6;
+    background: var(--bg-secondary);
+}
+
+.flashcard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.flashcard-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 600;
+}
+
+.status-badge.new {
+    background: #dc3545;
+    color: white;
+}
+
+.status-badge.viewed {
+    background: #28a745;
+    color: white;
+}
+
+.track-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75em;
+}
+
+.flashcard-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--bg-secondary);
+}
+
+.flashcard-content {
+    margin-bottom: 12px;
+}
+
+.flashcard-name {
+    margin: 0 0 8px 0;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.flashcard-preview {
+    color: var(--text-light);
+    font-size: 0.9em;
+}
+
+.flashcard-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.article-reference {
+    font-size: 0.8em;
+    color: var(--text-lighter);
+}
+
+.no-flashcards {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+}
+
+.empty-state {
+    color: var(--text-light);
+}
+
+.empty-state h4 {
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+/* Dark mode adjustments */
+.dark-mode .article-card,
+.dark-mode .flashcard-item {
+    background: var(--card-bg-dark);
+}
+
+.dark-mode .generation-options {
+    background: var(--bg-secondary-dark);
+}
+
+/* --- Estilos da Notificação (Toast) --- */
+.toast-notification {
+    position: fixed;
+    top: 20px; /* Alterado de 'bottom' para 'top' */
+    right: 20px; /* Adicionado para alinhar à direita */
+    /* 'left' e a transformação horizontal foram removidas */
+    background-color: #28a745; /* Verde sucesso */
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    opacity: 0;
+    /* Nova animação: deslizar da direita para a esquerda */
+    transform: translateX(100%);
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    /* Move para a posição final (desliza para a tela) */
+    transform: translateX(0);
+}
+
+/* Adicionar no final de styles.css */
+
+.article-text-preview {
+    font-size: 0.85em; /* Tamanho de fonte menor */
+    color: var(--text-muted); /* Cor sutil para texto secundário */
+    margin-top: var(--spacing-2); /* Espaçamento de 0.5rem acima */
+    font-style: italic; /* Estilo itálico para indicar citação/preview */
+    line-height: 1.4; /* Melhora a legibilidade */
+    max-height: 50px; /* Evita que o card fique muito alto */
+    overflow: hidden; /* Esconde o texto que ultrapassar a altura máxima */
+    margin-bottom: var(
+        --spacing-2
+    ); /* Espaçamento abaixo antes do nome da lei */
+}
+
+/* Garante que o nome da lei fique alinhado corretamente */
+.article-info .article-law {
+    display: inline-block; /* Melhora o alinhamento */
+    margin-top: auto; /* Empurra para o final do card se houver espaço */
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para o Accordion de Seleção de Trilhas --- */
+
+.track-selection-group {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-3);
+    background-color: var(--bg-secondary);
+    transition: background-color var(--transition-fast);
+    overflow: hidden; /* Garante que os cantos arredondados funcionem */
+}
+
+/* Quando o painel está aberto */
+.track-selection-group[open] {
+    background-color: var(--card-bg);
+    border-color: var(--primary-color);
+}
+
+.track-selection-group[open] summary {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-tertiary);
+}
+
+/* Estilo do cabeçalho clicável (tag summary) */
+.track-selection-group summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-4);
+    cursor: pointer;
+    list-style: none; /* Remove a seta padrão */
+    transition: background-color var(--transition-fast);
+}
+
+.track-selection-group summary:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.track-summary-title {
+    margin: 0;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Adicionando uma seta personalizada para indicar o estado (aberto/fechado) */
+.track-selection-group summary::after {
+    content: '▼';
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    transform: rotate(0deg);
+    transition: transform var(--transition-normal);
+}
+
+.track-selection-group[open] summary::after {
+    transform: rotate(180deg);
+}
+
+/* Ocultar a seta padrão do navegador */
+.track-selection-group summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Espaçamento interno para o grid de artigos quando o painel está aberto */
+.track-selection-group .articles-grid {
+    padding: var(--spacing-4);
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Melhorias no Rodapé do Card de Flashcard --- */
+.flashcard-footer {
+    display: flex;
+    justify-content: space-between; /* Alinha os itens com espaço entre eles */
+    align-items: center; /* Alinha verticalmente no centro */
+    margin-top: var(--spacing-4);
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--border-color);
+}
+
+.flashcard-footer .meta-item {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.flashcard-footer .review-btn {
+    /* O botão já é flexível, então não precisa de muito estilo extra */
+    padding: var(--spacing-2) var(--spacing-4); /* Ajuste de padding se necessário */
+    font-size: var(--font-size-sm);
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para os Controles de Paginação --- */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+}
+
+.pagination-controls .page-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.pagination-controls .btn:disabled {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para o Modal de Leitura de Artigo --- */
+.article-modal-content {
+    max-width: 800px;
+    width: 95%;
+}
+
+.article-modal-content .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-4);
+}
+
+.article-modal-content .modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.article-modal-content .modal-body {
+    padding-top: var(--spacing-4);
+}
+
+.article-modal-content .article-full-text {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    margin-top: var(--spacing-4);
+    max-height: 50vh;
+    overflow-y: auto;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+/* --- Estilos para as Ações e Badge no Card de Geração --- */
+.article-card {
+    display: flex; /* Permite que o conteúdo e as ações se alinhem */
+    flex-direction: column; /* Organiza o conteúdo verticalmente */
+    justify-content: space-between; /* Empurra as ações para o final */
+}
+
+.article-card-actions {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end; /* Alinha o botão à direita */
+}
+
+.article-card-actions .read-article-btn {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+.article-usage-badge {
+    display: inline-block;
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-style: italic;
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+}
+
+/* --- Estilo para o número de expoente no título do flashcard --- */
+.flashcard-title sup {
+    font-size: 0.7em;
+    color: var(--accent-color);
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Animação para remoção suave de cards --- */
+.flashcard-card.card-removing {
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Redesenho Completo da Interface de Chat --- */
+
+/* Contêiner principal da interface de chat */
+#chat-interface {
+    display: flex;
+    flex-direction: column;
+    height: calc(
+        100vh - 200px
+    ); /* Ocupa a altura da tela menos o cabeçalho e paddings */
+    max-height: 700px; /* Limite máximo de altura */
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Área onde as mensagens aparecem */
+#chat-messages {
+    flex: 1; /* Faz esta área crescer para ocupar o espaço disponível */
+    padding: var(--spacing-6);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+/* Estilo base para os "balões" de mensagem */
+.user-message,
+.ai-message {
+    max-width: 80%;
+    padding: var(--spacing-3) var(--spacing-5);
+    border-radius: var(--radius-xl);
+    line-height: 1.6;
+    word-wrap: break-word;
+    animation: message-appear 0.4s ease-out;
+}
+
+/* Estilo para as mensagens do usuário (direita) */
+.user-message {
+    align-self: flex-end;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    border-bottom-right-radius: var(
+        --radius-sm
+    ); /* Detalhe de estilo de balão */
+}
+
+/* Estilo para as mensagens da IA (esquerda) */
+.ai-message {
+    align-self: flex-start;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-bottom-left-radius: var(
+        --radius-sm
+    ); /* Detalhe de estilo de balão */
+}
+
+.ai-message .message-content strong {
+    color: var(--primary-color);
+}
+
+/* Animação de aparição das mensagens */
+@keyframes message-appear {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Contêiner da área de input */
+.chat-input-container {
+    display: flex;
+    align-items: flex-end; /* Alinha o botão com a base do textarea */
+    padding: var(--spacing-4);
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    gap: var(--spacing-3);
+}
+
+/* Novo estilo para o campo de input (agora textarea) */
+#chat-input {
+    flex: 1;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    padding: var(--spacing-3) var(--spacing-4);
+    resize: none; /* Desabilita o redimensionamento manual */
+    overflow-y: auto; /* Adiciona scroll se a mensagem for muito longa */
+    min-height: 48px; /* Altura mínima */
+    max-height: 200px; /* Altura máxima para não ocupar a tela toda */
+    transition: border-color var(--transition-fast);
+}
+
+#chat-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Novo estilo para o botão de enviar */
+#send-chat {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 50%; /* Botão circular */
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+#send-chat:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+#send-chat svg {
+    margin-left: -2px; /* Ajuste fino do ícone */
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    #chat-interface {
+        height: calc(100vh - 140px); /* Ajusta altura para mobile */
+    }
+    .user-message,
+    .ai-message {
+        max-width: 90%;
+    }
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para os Botões de Sugestão do Chat --- */
+
+#chat-suggestions-container {
+    padding: 0 var(--spacing-4) var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+#chat-suggestions p {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-3);
+    text-align: center;
+}
+
+.suggestion-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    justify-content: center;
+}
+
+.suggestion-btn {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.suggestion-btn:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para o Botão de Sugestões do Chat --- */
+
+#show-suggestions-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 20px; /* Tamanho do ícone de lâmpada */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para a Revisão em Baralho --- */
+
+.deck-review-modal .modal-content {
+    /* Remove padding padrão se houver */
+    padding: 0;
+    overflow: visible; /* Permite que o card "salte" visualmente */
+}
+
+.deck-review-container {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-6);
+    width: 90vw;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl);
+}
+
+.deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.deck-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+}
+
+.deck-header .card-counter {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.close-deck-btn {
+    background: none;
+    border: none;
+    font-size: var(--font-size-xl);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+/* Estilo da "carta" */
+.deck-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    min-height: 350px;
+    margin-bottom: var(--spacing-6);
+    position: relative;
+    cursor: pointer;
+    /* Efeito 3D */
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    box-shadow: var(--shadow-md);
+}
+
+.deck-card.is-flipped {
+    transform: rotateY(180deg);
+}
+
+/* Faces da carta (frente e verso) */
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Esconde o lado de trás */
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--border-color);
+    overflow: auto; /* Adiciona scroll se conteúdo for grande */
+}
+
+.card-face--front {
+    background-color: var(--card-bg);
+}
+
+.card-face--back {
+    background-color: var(--bg-tertiary); /* Cor diferente para o verso */
+    transform: rotateY(180deg);
+}
+
+.card-content {
+    flex-grow: 1;
+}
+
+.card-content h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-3);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+}
+
+.card-content p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-4);
+}
+
+.card-ref {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-4);
+    font-weight: 500;
+}
+
+.card-source-deck {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: auto; /* Empurra para baixo */
+    padding-top: var(--spacing-3);
+    border-top: 1px dashed var(--border-color);
+}
+
+.flip-deck-card-btn,
+.back-actions {
+    margin-top: var(--spacing-4);
+    text-align: center;
+}
+
+.back-actions .btn {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-4);
+}
+
+/* Navegação */
+.deck-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-4);
+}
+
+.deck-navigation .btn {
+    padding: var(--spacing-3) var(--spacing-5);
+}
+
+/* Dentro dos estilos da Revisão em Baralho */
+
+.card-face--back .quality-buttons {
+    display: grid; /* Usa grid para melhor alinhamento */
+    grid-template-columns: repeat(2, 1fr); /* Duas colunas */
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-4);
+    padding-top: var(--spacing-4);
+    border-top: 1px dashed var(--border-color);
+}
+
+.quality-buttons .btn {
+    width: 100%;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-1); /* Padding menor */
+    text-align: center;
+}
+
+/* Cores específicas para os botões de qualidade (você já deve ter) */
+.btn-again {
+    background: linear-gradient(135deg, var(--error-color), #dc2626);
+    color: white;
+}
+.btn-hard {
+    background: linear-gradient(
+        135deg,
+        var(--warning-color),
+        var(--accent-dark)
+    );
+    color: white;
+}
+.btn-good {
+    background: linear-gradient(
+        135deg,
+        var(--success-color),
+        var(--secondary-dark)
+    );
+    color: white;
+}
+.btn-easy {
+    background: linear-gradient(135deg, var(--info-color), var(--primary-dark));
+    color: white;
+}
+
+/* Adiciona um estilo para a classe específica do modal individual (opcional) */
+.individual-review-modal .deck-navigation {
+    display: none; /* Esconde navegação prev/next na revisão individual */
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para Classificação por Dificuldade --- */
+
+/* Badge na lista principal */
+.difficulty-badge {
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    margin-left: var(--spacing-2);
+    vertical-align: middle;
+}
+
+.difficulty-easy {
+    background-color: var(--success-color);
+    color: white;
+}
+.difficulty-medium {
+    background-color: var(--warning-color);
+    color: #1f2937;
+} /* Cor escura para contraste */
+.difficulty-difficult {
+    background-color: var(--error-color);
+    color: white;
+}
+.difficulty-unrated {
+    background-color: var(--bg-tertiary);
+    color: var(--text-muted);
+}
+
+/* Indicador no modal de revisão */
+.difficulty-indicator {
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 0.7em;
+    font-weight: bold;
+    margin-left: var(--spacing-2);
+    vertical-align: middle;
+}
+
+/* Botões de classificação no verso do card */
+.difficulty-rating-buttons {
+    margin-top: var(--spacing-4);
+    padding-top: var(--spacing-4);
+    border-top: 1px dashed var(--border-color);
+    text-align: center;
+}
+
+.difficulty-rating-buttons p {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-3);
+}
+
+.difficulty-rating-buttons .btn-difficulty {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-3) var(--spacing-4);
+    width: calc(33.33% - var(--spacing-2)); /* Três botões com espaço */
+    margin: var(--spacing-1);
+    box-sizing: border-box;
+}
+
+/* Cores específicas para botões de dificuldade */
+.btn-easy {
+    background: linear-gradient(
+        135deg,
+        var(--success-color),
+        var(--secondary-dark)
+    );
+    color: white;
+}
+.btn-medium {
+    background: linear-gradient(
+        135deg,
+        var(--warning-color),
+        var(--accent-dark)
+    );
+    color: #1f2937;
+}
+.btn-difficult {
+    background: linear-gradient(135deg, var(--error-color), #dc2626);
+    color: white;
+}
+
+/* Modal de Seleção de Dificuldade */
+.difficulty-select-content {
+    max-width: 450px;
+}
+
+.difficulty-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin: var(--spacing-4) 0 var(--spacing-6) 0;
+}
+
+.difficulty-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+}
+
+.difficulty-checkboxes input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+/* Botões de Revisão na Lista Principal */
+.review-actions {
+    display: flex;
+    gap: var(--spacing-3);
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para o Modal de Seleção de Trilhas --- */
+
+.track-select-content {
+    max-width: 550px; /* Um pouco maior para as trilhas */
+}
+
+.track-selection-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-4);
+}
+
+.track-selection-controls .btn-small {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) var(--spacing-3);
+}
+
+.track-checkboxes {
+    max-height: 40vh; /* Altura máxima para a lista rolável */
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    background-color: var(--bg-secondary);
+    margin-bottom: var(--spacing-6);
+}
+
+.track-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-2) 0;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+}
+
+.track-checkboxes label:not(:last-child) {
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.track-checkboxes input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Estilos para Informação de Trilhas e Botão Voltar no Modal de Dificuldade --- */
+
+.difficulty-select-content .selected-tracks-info {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-3) var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.difficulty-select-content .selected-tracks-info strong {
+    color: var(--primary-color);
+    margin-right: var(--spacing-2);
+}
+
+/* Ajusta o espaçamento dos botões no rodapé do modal */
+.difficulty-select-content .modal-actions {
+    justify-content: space-between; /* Empurra o botão voltar para a esquerda */
+}
+
+/* Garante que o botão voltar tenha um estilo consistente */
+#back-to-track-select {
+    margin-right: auto; /* Empurra os outros botões para a direita */
+}
+
+/* Adicionar/Substituir no final de styles.css */
+
+/* --- Redesenho Compacto dos Cards de Flashcard --- */
+
+/* Ajuste no Grid para cards mais estreitos */
+.flashcards-grid {
+    display: grid;
+    /* Reduz a largura mínima para permitir mais colunas e um visual mais quadrado */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-5); /* Pode ajustar o espaçamento se necessário */
+}
+
+/* Card Principal - Ajustes menores, flex continua importante */
+.flashcard-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(
+        --radius-lg
+    ); /* Bordas um pouco menos arredondadas ficam bem */
+    padding: var(--spacing-4); /* Padding ligeiramente menor */
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Mantém footer no fundo */
+    overflow: hidden; /* Evita que conteúdo vaze */
+}
+
+.flashcard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+/* Cabeçalho do Card */
+.flashcard-header {
+    display: flex;
+    justify-content: space-between; /* Título à esquerda, ações à direita */
+    align-items: flex-start; /* Alinha itens no topo */
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4); /* Aumenta espaço abaixo do header */
+}
+
+/* Nova área para título e badge */
+.flashcard-title-area {
+    flex-grow: 1; /* Permite que esta área ocupe o espaço */
+}
+
+.flashcard-title {
+    font-size: var(--font-size-lg); /* Pode manter ou diminuir um pouco */
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-1) 0; /* Espaço abaixo para o badge */
+    word-break: break-word; /* Quebra palavras longas */
+    line-height: 1.3;
+}
+
+/* Badge de Dificuldade (já existente, apenas garantir posicionamento) */
+.difficulty-badge {
+    display: inline-block; /* Garante que fique abaixo do título */
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    vertical-align: middle; /* Alinha se houver texto ao lado */
+}
+/* Classes de cor do badge (já devem existir) */
+.difficulty-easy {
+    background-color: var(--success-color);
+    color: white;
+}
+.difficulty-medium {
+    background-color: var(--warning-color);
+    color: #1f2937;
+}
+.difficulty-difficult {
+    background-color: var(--error-color);
+    color: white;
+}
+.difficulty-unrated {
+    display: none;
+} /* Opcional: Ocultar se não classificado */
+
+/* Ações do Card (ícones) */
+.flashcard-actions {
+    display: flex;
+    gap: var(--spacing-1); /* Espaçamento menor entre ícones */
+    flex-shrink: 0; /* Impede que os ícones encolham */
+}
+
+.flashcard-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg); /* Tamanho dos ícones */
+    color: var(--text-muted);
+    padding: var(--spacing-1);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.flashcard-action-btn:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+/* Rodapé do Card (Layout Empilhado) */
+.flashcard-footer {
+    display: flex;
+    flex-direction: column; /* Empilha meta info e botão */
+    align-items: stretch; /* Faz itens ocuparem a largura */
+    margin-top: auto; /* Garante que o footer fique no fundo se o card crescer */
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--border-color);
+}
+
+.flashcard-meta {
+    display: flex;
+    justify-content: space-between; /* Espaça Fonte e Views */
+    align-items: center;
+    margin-bottom: var(--spacing-3); /* Espaço antes do botão */
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.flashcard-footer .review-btn {
+    width: 100%; /* Botão ocupa toda a largura */
+    justify-content: center; /* Centraliza o texto do botão */
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-4);
+}
+
+/* Ajuste no expoente (mantido) */
+.flashcard-title sup {
+    font-size: 0.7em;
+    color: var(--accent-color);
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+/* Adicionar no final de styles.css */
+
+/* --- Layout Mobile para Flashcards --- */
+
+/* Botão para mostrar/esconder filtros (visível apenas em mobile) */
+.toggle-filters-btn {
+    display: none; /* Escondido por padrão em telas maiores */
+    width: 100%;
+    margin-bottom: var(--spacing-4);
+    justify-content: center;
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+.toggle-filters-btn span {
+    margin-left: var(--spacing-2);
+    font-weight: bold;
+}
+
+/* Media Query para aplicar estilos em telas menores (ex: até 768px) */
+@media (max-width: 768px) {
+    /* Mostrar o botão de filtros */
+    .toggle-filters-btn {
+        display: inline-flex;
+    }
+
+    /* Esconder o painel de filtros por padrão */
+    .flashcards-filters {
+        display: none; /* Começa escondido */
+        grid-template-columns: 1fr; /* Uma coluna quando visível */
+        gap: var(--spacing-4);
+        padding: var(--spacing-4);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background-color: var(--bg-secondary);
+        margin-bottom: var(--spacing-4);
+    }
+
+    /* Garante que ele seja grid quando visível (para o JS funcionar) */
+    .flashcards-filters[style*='display: grid'] {
+        display: grid;
+    }
+
+    /* Ajustar layout do header e botões de revisão */
+    .existing-flashcards .section-header {
+        flex-direction: column; /* Empilha título e stats */
+        align-items: flex-start; /* Alinha à esquerda */
+    }
+    .flashcards-stats {
+        width: 100%;
+        justify-content: space-around; /* Espaça as stats */
+        margin-bottom: var(--spacing-3);
+    }
+    .review-actions {
+        width: 100%;
+        display: grid; /* Usa grid para botões de tamanho igual */
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-3);
+        margin-bottom: var(--spacing-4);
+    }
+    .review-actions .btn {
+        width: 100%; /* Ocupa a coluna do grid */
+        justify-content: center;
+    }
+
+    /* Grid de Flashcards: Uma coluna */
+    .flashcards-grid {
+        grid-template-columns: 1fr; /* Apenas uma coluna */
+        gap: var(--spacing-4);
+    }
+
+    /* Ajustes opcionais no card para mobile (se necessário) */
+    .flashcard-card {
+        padding: var(--spacing-3);
+    }
+    .flashcard-title {
+        font-size: var(--font-size-base); /* Título menor */
+    }
+    .flashcard-footer .review-btn {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+}
+
+/* ====================================================== */
+/* ===== INÍCIO: Conteúdo Original de jsmind.css ===== */
+/* ====================================================== */
+/**
+ * @license BSD
+ * @copyright 2014-2025 hizzgdev@163.com
+ *
+ * Project Home:
+ * https://github.com/hizzgdev/jsmind/
+ */
+
+/* important section */
+.jsmind-inner {
+    position: relative;
+    overflow: auto; /* Mantido auto para rolagem interna se necessário */
+    width: 100%;
+    height: 100%; /* Ocupa altura do contêiner pai */
+    outline: none;
+    /* box-shadow:0 0 2px #000; */ /* Comentado - pode conflitar com estilos Lexia */
+}
+.jsmind-inner {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jsmind-inner canvas {
+    /* Aplica-se se usar engine: 'canvas' */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* z-index:1 - Elementos SVG ou Canvas */
+svg.jsmind,
+canvas.jsmind {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+
+/* z-index:2 - Contêiner dos nós HTML */
+jmnodes {
+    position: absolute;
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0); /* Necessário para captura de eventos */
+    top: 0;
+    left: 0;
+    /* width e height serão definidos pelo JS */
+}
+jmnode {
+    position: absolute;
+    cursor: default;
+    /* max-width será definido nos estilos adaptados abaixo */
+    /* Outros estilos base serão definidos nos estilos adaptados */
+}
+jmexpander {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    display: block;
+    overflow: hidden;
+    line-height: 11px; /* Ajustado para alinhar melhor */
+    font-size: 10px;
+    text-align: center;
+    border-radius: 6px;
+    border-width: 1px;
+    border-style: solid;
+    cursor: pointer;
+    z-index: 3; /* Garante que fique acima das linhas */
+    /* Cores e bordas serão definidas por tema */
+}
+
+/* Controle de overflow do texto nos nós (será sobrescrito/controlado pelos estilos adaptados) */
+.jmnode-overflow-wrap jmnodes {
+    /* min-width não é ideal aqui, controle via jmnode */
+}
+
+.jmnode-overflow-hidden jmnode {
+    /* white-space: nowrap; */ /* Removido - será controlado por 'wrap' */
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+}
+
+/* ==================================================== */
+/* ===== FIM: Conteúdo Original de jsmind.css ===== */
+/* ==================================================== */
+
+/* =============================================================== */
+/* ===== INÍCIO: Estilos Adaptados de mindmap_styles.css ===== */
+/* =============================================================== */
+
+/* Contêiner Principal do Mapa Mental no Lexia */
+#jsmind_container_lexia {
+    width: 100%;
+    height: 600px; /* Altura padrão para o mapa */
+    border: 1px solid var(--border-color); /* Borda com cor do Lexia */
+    border-radius: var(--radius-lg); /* Raio de borda do Lexia */
+    background-color: var(--bg-secondary); /* Fundo sutil do Lexia */
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+    position: relative; /* Necessário para jsMind */
+    overflow: hidden; /* Necessário para jsMind */
+    /* Garante que o contêiner interno ocupe todo o espaço */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Estilo padrão para os nós (jmnode) - Adaptado para Lexia */
+#jsmind_container_lexia jmnode {
+    max-width: 300px; /* Largura máxima antes da quebra */
+    white-space: normal !important; /* FORÇA a quebra de linha */
+    overflow-wrap: break-word; /* Quebra palavras longas */
+    box-shadow: var(--shadow-md); /* Sombra do Lexia */
+    padding: 10px 14px; /* Padding interno */
+    border-radius: var(--radius-md); /* Raio de borda */
+    font-size: var(--font-size-sm); /* Tamanho de fonte base */
+    line-height: 1.5; /* Espaçamento entre linhas */
+    border: 1px solid transparent; /* Borda inicial transparente */
+    transition: all var(--transition-fast); /* Transição suave */
+    /* Cores e fundo definidos pelo tema abaixo */
+}
+
+/* Estilo para o nó raiz (jmnode.root) */
+#jsmind_container_lexia jmnode.root {
+    max-width: 400px; /* Raiz pode ser maior */
+    padding: 15px 20px;
+    font-size: var(--font-size-lg); /* Fonte maior para raiz */
+    font-weight: 600;
+    /* Cores definidas pelo tema */
+}
+
+/* Efeito Hover nos Nós (exceto raiz) */
+#jsmind_container_lexia jmnode:not(.root):hover {
+    box-shadow: var(--shadow-lg); /* Sombra maior no hover */
+    transform: translateY(-2px); /* Efeito sutil de elevação */
+    border-color: var(--primary-light); /* Borda sutil ao passar o mouse */
+}
+
+/* Estilo do Nó Selecionado */
+#jsmind_container_lexia jmnode.selected {
+    box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-lg); /* Destaque de seleção */
+    transform: scale(1.02); /* Leve aumento ao selecionar */
+    /* Cores definidas pelo tema */
+}
+
+/* Estilo do Expansor (jmexpander) */
+#jsmind_container_lexia jmexpander {
+    background-color: white;
+    /* Cores de borda e texto definidas pelo tema */
+    transition: all var(--transition-fast);
+}
+#jsmind_container_lexia jmexpander:hover {
+    transform: scale(1.1); /* Aumenta um pouco no hover */
+}
+
+/* --- Adaptação do Tema 'belizehole' (Azul) para Variáveis Lexia --- */
+/* (Este é o tema padrão definido no JS, mas adaptamos as cores) */
+
+/* Nós normais */
+#jsmind_container_lexia jmnodes.theme-belizehole jmnode {
+    background-color: var(--card-bg); /* Fundo padrão do card Lexia */
+    color: var(--text-primary); /* Cor de texto padrão Lexia */
+    border: 1px solid var(--border-color); /* Borda padrão Lexia */
+}
+/* Hover nos nós normais */
+#jsmind_container_lexia jmnodes.theme-belizehole jmnode:hover {
+    background-color: var(--bg-tertiary); /* Fundo sutil no hover */
+    border-color: var(--primary-light);
+}
+/* Nó raiz no tema azul */
+#jsmind_container_lexia jmnodes.theme-belizehole jmnode.root {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    ); /* Gradiente azul Lexia */
+    color: white;
+    border-color: var(--primary-dark);
+}
+/* Nó selecionado no tema azul */
+#jsmind_container_lexia jmnodes.theme-belizehole jmnode.selected {
+    background-color: var(--primary-light); /* Azul claro ao selecionar */
+    color: white;
+    border-color: var(--primary-dark);
+}
+/* Expansor no tema azul */
+#jsmind_container_lexia jmnodes.theme-belizehole jmexpander {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: white;
+}
+/* Hover no expansor no tema azul */
+#jsmind_container_lexia jmnodes.theme-belizehole jmexpander:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-dark);
+}
+
+/* --- FIM Adaptação Tema 'belizehole' --- */
+
+/* Indicador de carregamento e dicas (já presentes no HTML) */
+#mindmap-loading-indicator {
+    display: flex; /* Centraliza o conteúdo */
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 40px 20px;
+    min-height: 100px; /* Altura mínima para visibilidade */
+}
+
+.mindmap-hint {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: var(--spacing-4);
+}
+
+/* Responsividade para o contêiner do mapa */
+@media (max-width: 768px) {
+    #jsmind_container_lexia {
+        height: 500px; /* Altura menor em telas pequenas */
+    }
+    #jsmind_container_lexia jmnode {
+        max-width: 250px; /* Nós um pouco menores */
+        padding: 8px 10px;
+        font-size: var(--font-size-xs);
+    }
+    #jsmind_container_lexia jmnode.root {
+        max-width: 300px;
+        font-size: var(--font-size-base);
+    }
+}
+
+/* ============================================================= */
+/* ===== FIM: Estilos Adaptados de mindmap_styles.css ===== */
+/* ============================================================= */
+
+/* ========================================================================= */
+/* ===== INÍCIO: Novos Estilos para Seleção de Artigos em Mapas Mentais ===== */
+/* ========================================================================= */
+
+/* Contêiner da seção de geração (reutiliza/adapta estilo existente) */
+.mindmap-generation-section {
+    /* Herda estilos da classe .card adicionada no HTML */
+    margin-bottom: var(
+        --spacing-8
+    ); /* Espaçamento abaixo da seção de geração */
+}
+.mindmap-generation-section h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-5);
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+}
+
+/* Área de seleção de artigos */
+#mindmap-article-selection-area {
+    /* Espaçamento interno gerenciado pelos elementos filhos (details) */
+}
+
+/* Estilos para o grupo de seleção de trilha/lei (accordion <details>) */
+#mindmap-article-selection-area .track-selection-group {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-4); /* Espaço entre grupos de trilha */
+    background-color: var(--bg-secondary);
+    transition: background-color var(--transition-fast),
+        border-color var(--transition-fast);
+    overflow: hidden;
+}
+#mindmap-article-selection-area .track-selection-group[open] {
+    background-color: var(--card-bg); /* Fundo mais claro quando aberto */
+    border-color: var(--primary-light); /* Borda destacada */
+}
+
+/* Header clicável do accordion (<summary>) */
+#mindmap-article-selection-area .track-selection-group summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-3) var(--spacing-4); /* Padding do header */
+    cursor: pointer;
+    list-style: none; /* Remove marcador padrão */
+    transition: background-color var(--transition-fast);
+}
+#mindmap-article-selection-area .track-selection-group summary:hover {
+    background-color: var(--bg-tertiary);
+}
+#mindmap-article-selection-area .track-selection-group[open] summary {
+    border-bottom: 1px solid var(--border-color); /* Linha divisória quando aberto */
+    background-color: var(--bg-tertiary);
+}
+
+/* Título da trilha dentro do header */
+#mindmap-article-selection-area .track-summary-title {
+    margin: 0;
+    font-size: var(--font-size-base); /* Tamanho do título da trilha */
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Badge de contagem de artigos */
+#mindmap-article-selection-area .article-count-badge {
+    background: var(--primary-color); /* Cor primária para o badge */
+    color: white;
+    padding: var(--spacing-1) var(--spacing-3); /* Padding do badge */
+    border-radius: var(--radius-full); /* Badge arredondado */
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+/* Seta indicadora do accordion */
+#mindmap-article-selection-area .track-selection-group summary::after {
+    content: '▼';
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    transform: rotate(0deg);
+    transition: transform var(--transition-normal);
+}
+#mindmap-article-selection-area .track-selection-group[open] summary::after {
+    transform: rotate(180deg);
+}
+#mindmap-article-selection-area
+    .track-selection-group
+    summary::-webkit-details-marker {
+    display: none; /* Oculta marcador padrão do navegador */
+}
+
+/* Grid que contém os cards dos artigos dentro do accordion */
+#mindmap-article-selection-area .mindmap-articles-grid {
+    padding: var(--spacing-4); /* Espaçamento interno do grid */
+    display: grid;
+    /* Colunas responsivas: mínimo 280px, máximo 1fr (ocupa espaço igual) */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-4); /* Espaçamento entre os cards de artigo */
+}
+
+/* Card individual de cada artigo para seleção */
+#mindmap-article-selection-area .mindmap-article-card {
+    border: 1px solid transparent; /* Borda inicial transparente */
+    border-radius: var(--radius-md); /* Borda do card */
+    padding: var(--spacing-3); /* Padding interno do card */
+    background-color: var(--card-bg); /* Fundo do card */
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm); /* Sombra sutil */
+}
+#mindmap-article-selection-area .mindmap-article-card:hover {
+    border-color: var(--primary-color); /* Destaca borda no hover */
+    transform: translateY(-2px); /* Efeito de elevação */
+    box-shadow: var(--shadow-md);
+}
+
+/* Label que envolve o checkbox e as informações (clicável) */
+#mindmap-article-selection-area .mindmap-article-select-label {
+    display: flex;
+    align-items: flex-start; /* Alinha checkbox no topo */
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Checkbox de seleção do artigo */
+#mindmap-article-selection-area .mindmap-article-checkbox {
+    margin-right: var(--spacing-3); /* Espaço à direita do checkbox */
+    margin-top: 5px; /* Ajuste fino de alinhamento vertical */
+    flex-shrink: 0; /* Impede que o checkbox encolha */
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color); /* Cor do checkbox marcado */
+}
+
+/* Contêiner das informações do artigo (Ref, Assunto, Lei) */
+#mindmap-article-selection-area .mindmap-article-info {
+    flex: 1; /* Ocupa o espaço restante */
+}
+
+/* Referência do artigo (Ex: Art. 121) */
+#mindmap-article-selection-area .mindmap-article-ref {
+    color: var(--primary-color); /* Cor primária para destaque */
+    font-weight: 600; /* Negrito */
+    font-size: var(--font-size-sm); /* Tamanho da referência */
+    display: block; /* Garante quebra de linha */
+    margin-bottom: var(--spacing-1); /* Espaço abaixo */
+}
+
+/* Assunto do artigo */
+#mindmap-article-selection-area .mindmap-article-subject {
+    margin: 0 0 var(--spacing-2) 0; /* Espaço abaixo */
+    font-size: var(--font-size-xs); /* Tamanho menor para o assunto */
+    color: var(--text-secondary); /* Cor secundária */
+    line-height: 1.4; /* Espaçamento entre linhas */
+}
+
+/* Nome da lei/arquivo (badge) */
+#mindmap-article-selection-area .mindmap-article-law {
+    font-size: var(--font-size-xs); /* Tamanho pequeno */
+    color: var(--text-muted); /* Cor suave */
+    background-color: var(--bg-tertiary); /* Fundo sutil */
+    padding: var(--spacing-1) var(--spacing-2); /* Padding do badge */
+    border-radius: var(--radius-sm); /* Borda arredondada */
+    display: inline-block; /* Para o padding funcionar */
+    margin-top: var(--spacing-1); /* Espaço acima */
+}
+
+/* Botão de Geração (reutiliza estilo .btn, mas pode ter ajustes) */
+#generate-mindmap-btn {
+    /* Estilos adicionais se necessário, ex: largura mínima */
+    min-width: 180px;
+    display: inline-flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mensagem quando não há artigos */
+#mindmap-article-selection-area .no-articles {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--spacing-6);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+}
+
+/* Ajustes responsivos para a seleção de artigos */
+@media (max-width: 768px) {
+    #mindmap-article-selection-area .mindmap-articles-grid {
+        grid-template-columns: 1fr; /* Uma coluna em telas menores */
+    }
+}
+
+/* ======================================================================= */
+/* ===== FIM: Novos Estilos para Seleção de Artigos em Mapas Mentais ===== */
+/* ======================================================================= */
+
+/* ========================================================================= */
+/* ===== ESTILOS ADAPTADOS PARA SELEÇÃO DE ARTIGOS (MAPAS MENTAIS) ===== */
+/* ========================================================================= */
+
+/* Usa IDs específicos para garantir que não conflitem com flashcards, mas
+   reutiliza a estrutura de classes dos flashcards para consistência visual */
+
+#mindmap-article-selection-area .track-selection-group {
+    /* Estilos herdados de .track-selection-group (já existentes) */
+    margin-bottom: var(--spacing-4);
+}
+
+#mindmap-article-selection-area .track-selection-group summary {
+    /* Estilos herdados de .track-selection-group summary (já existentes) */
+}
+
+#mindmap-article-selection-area .track-summary-title {
+    /* Estilos herdados de .track-summary-title (já existentes) */
+}
+
+#mindmap-article-selection-area .article-count {
+    /* Nome da classe igual ao do flashcard */
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+}
+
+/* Grid de artigos dentro do accordion */
+#mindmap-article-selection-area .articles-grid {
+    padding: var(--spacing-4);
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(300px, 1fr)
+    ); /* Ajuste largura mínima se necessário */
+    gap: var(--spacing-4);
+}
+
+/* Card de artigo para seleção */
+#mindmap-article-selection-area .article-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg); /* Bordas mais arredondadas */
+    padding: var(--spacing-4); /* Mais padding */
+    background-color: var(--card-bg);
+    transition: all var(--transition-fast);
+    display: flex; /* Para alinhar ações no rodapé */
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#mindmap-article-selection-area .article-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Label clicável */
+#mindmap-article-selection-area .article-select {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    margin: 0;
+    margin-bottom: var(--spacing-3); /* Espaço antes das ações */
+}
+
+/* Checkbox */
+#mindmap-article-selection-area .article-checkbox {
+    margin-right: var(--spacing-3);
+    margin-top: 5px;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+/* Informações do artigo */
+#mindmap-article-selection-area .article-info {
+    flex: 1;
+}
+
+/* Referência */
+#mindmap-article-selection-area .article-reference {
+    /* Nome da classe igual ao do flashcard */
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: var(--font-size-base); /* Tamanho maior */
+    display: block;
+    margin-bottom: var(--spacing-2);
+}
+
+/* Badge de Uso (se aplicável) */
+#mindmap-article-selection-area .article-usage-badge {
+    /* Nome da classe igual ao do flashcard */
+    display: inline-block;
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-style: italic;
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+}
+
+/* Assunto */
+#mindmap-article-selection-area .article-subject {
+    /* Nome da classe igual ao do flashcard */
+    margin: 0 0 var(--spacing-2) 0;
+    font-size: var(--font-size-sm); /* Tamanho um pouco maior */
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Preview do Texto */
+#mindmap-article-selection-area .article-text-preview {
+    /* Nome da classe igual ao do flashcard */
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--spacing-2);
+    font-style: italic;
+    line-height: 1.4;
+    max-height: 50px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-2);
+    padding-left: var(--spacing-3); /* Indentação para o preview */
+    border-left: 2px solid var(--border-color); /* Linha sutil à esquerda */
+}
+
+/* Nome da Lei */
+#mindmap-article-selection-area .article-law {
+    /* Nome da classe igual ao do flashcard */
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    margin-top: var(--spacing-1);
+}
+
+/* Ações no card de seleção */
+#mindmap-article-selection-area .article-card-actions {
+    /* Nome da classe igual ao do flashcard */
+    margin-top: auto; /* Empurra para o final */
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+#mindmap-article-selection-area .article-card-actions .read-article-btn {
+    /* Nome da classe igual ao do flashcard */
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+/* Botão Gerar Mapas */
+#generate-selected-mindmaps {
+    width: 100%;
+    margin-top: var(--spacing-4);
+}
+
+/* ========================================================================= */
+/* ===== ESTILOS GENÉRICOS PARA CONTEÚDO EXISTENTE (Flashcards/Mapas) ===== */
+/* ========================================================================= */
+/* Usar essas classes em ambas as seções */
+
+.existing-content {
+    /* Herda .card */
+    margin-top: var(--spacing-8);
+}
+
+.existing-content .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-4);
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+}
+
+.existing-content .section-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.content-stats {
+    /* Para stats de flashcards e mapas */
+    display: flex;
+    gap: var(--spacing-4);
+    flex-wrap: wrap;
+}
+
+.content-stats .stat {
+    background: var(--bg-tertiary);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.review-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    flex-wrap: wrap;
+}
+
+.toggle-filters-btn {
+    display: none; /* Escondido por padrão, visível em mobile */
+    width: 100%;
+    margin-bottom: var(--spacing-4);
+    justify-content: center;
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+.toggle-filters-btn span {
+    margin-left: var(--spacing-2);
+    font-weight: bold;
+}
+
+.content-filters {
+    /* Para filtros de flashcards e mapas */
+    display: grid; /* Grid para melhor alinhamento */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-1);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.filter-select {
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.content-grid {
+    /* Para grid de flashcards e mapas */
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(300px, 1fr)
+    ); /* Ajuste minmax conforme necessário */
+    gap: var(--spacing-5);
+    margin-bottom: var(--spacing-6);
+}
+
+.no-items {
+    /* Mensagem de "Nenhum item" */
+    grid-column: 1 / -1; /* Ocupa toda a largura do grid */
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--spacing-8);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+}
+
+/* Estilos de Paginação (já devem existir e funcionar com a classe .pagination-controls) */
+
+/* ========================================================================= */
+/* ===== NOVOS ESTILOS PARA CARDS DE MAPAS MENTAIS GERADOS ===== */
+/* ========================================================================= */
+
+.mindmap-card {
+    /* Herda .card ou estilo base similar */
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative; /* Para ::before */
+}
+
+.mindmap-card::before {
+    /* Indicador visual sutil */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        var(--primary-light),
+        var(--secondary-color)
+    );
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.mindmap-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+.mindmap-card:hover::before {
+    opacity: 1;
+}
+
+.mindmap-card.favorite {
+    border-left: 4px solid var(--accent-color); /* Mesmo estilo de favorito dos flashcards */
+}
+
+.mindmap-card.archived {
+    opacity: 0.6; /* Mesmo estilo de arquivado dos flashcards */
+    background-color: var(--bg-tertiary);
+}
+
+/* Cabeçalho do Card de Mapa Mental */
+.mindmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+}
+
+.mindmap-title-area {
+    flex-grow: 1;
+}
+
+.mindmap-title {
+    font-size: var(--font-size-base); /* Tamanho menor que flashcard title */
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-1) 0;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+/* Ações (ícones) - Reutiliza .flashcard-actions */
+.mindmap-card .flashcard-actions {
+    /* Usa a mesma classe para consistência */
+    /* Estilos já definidos em .flashcard-actions */
+}
+.mindmap-card .flashcard-action-btn {
+    /* Usa a mesma classe */
+    /* Estilos já definidos em .flashcard-action-btn */
+}
+
+/* Rodapé do Card de Mapa Mental */
+.mindmap-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: auto;
+    padding-top: var(--spacing-3);
+    border-top: 1px solid var(--border-color);
+}
+
+.mindmap-meta {
+    /* Similar a .flashcard-meta */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-3);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.mindmap-footer .view-mindmap-btn {
+    /* Botão específico para visualizar */
+    width: 100%;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-4);
+}
+
+/* Animação de remoção (reutiliza .card-removing) */
+.mindmap-card.card-removing {
+    /* Estilos já definidos em .card-removing */
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* ========================================================================= */
+/* ===== NOVOS ESTILOS PARA MODAL DE VISUALIZAÇÃO DO MAPA MENTAL ===== */
+/* ========================================================================= */
+
+.mindmap-view-modal .modal-content {
+    max-width: 90vw; /* Ocupa grande parte da tela */
+    width: auto;
+    max-height: 90vh;
+    padding: 0; /* Remove padding padrão para o mapa ocupar tudo */
+    display: flex; /* Layout flexível */
+    flex-direction: column;
+    overflow: hidden; /* Evita scrollbars desnecessárias no modal */
+}
+
+.mindmap-view-modal .modal-header {
+    padding: var(--spacing-4) var(--spacing-6);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    flex-shrink: 0; /* Impede que o header encolha */
+}
+.mindmap-view-modal .modal-header h3 {
+    font-size: var(--font-size-lg);
+    margin: 0;
+    color: var(--primary-color);
+}
+.mindmap-view-modal .close-modal-btn {
+    /* Reutiliza a classe, mas pode estilizar especificamente */
+    /* Estilos do botão fechar */
+}
+
+.mindmap-view-modal .modal-body {
+    flex-grow: 1; /* Faz o corpo ocupar o espaço restante */
+    position: relative; /* Necessário para o jsmind container */
+    overflow: hidden; /* Importante para o jsmind */
+    display: flex; /* Para centralizar o jsmind se necessário */
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+/* Contêiner específico para o jsMind DENTRO do modal */
+#jsmind_container_modal {
+    width: 100%;
+    height: 100%;
+    /* Remove bordas e fundos que podem vir do CSS do jsmind ou adaptações anteriores */
+    border: none !important;
+    background-color: var(--bg-primary) !important; /* Fundo do modal */
+    box-shadow: none !important;
+    position: relative; /* Garante posicionamento correto */
+    overflow: hidden; /* Garante que o jsmind controle o overflow */
+}
+
+/* Adaptações nos nós DENTRO do modal (se necessário, sobrescrever jsmind.css) */
+#jsmind_container_modal jmnode {
+    /* Pode ajustar max-width ou fontes se necessário para o modal */
+    font-size: 13px; /* Um pouco menor no modal */
+    max-width: 280px;
+}
+#jsmind_container_modal jmnode.root {
+    font-size: 16px;
+}
+
+/* Footer do modal com botões de dificuldade */
+.mindmap-view-modal .modal-footer {
+    padding: var(--spacing-4) var(--spacing-6);
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    text-align: center;
+    flex-shrink: 0; /* Impede que o footer encolha */
+}
+
+.mindmap-view-modal .difficulty-rating-buttons p {
+    margin-bottom: var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.mindmap-view-modal .difficulty-rating-buttons .btn-difficulty {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2) var(--spacing-4);
+    margin: 0 var(--spacing-1);
+}
+
+/* Responsividade do Modal */
+@media (max-width: 768px) {
+    .mindmap-view-modal .modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    .mindmap-view-modal .modal-header h3 {
+        font-size: var(--font-size-base);
+    }
+    .mindmap-view-modal .difficulty-rating-buttons .btn-difficulty {
+        width: calc(
+            33% - var(--spacing-2)
+        ); /* Garante que caibam em telas menores */
+    }
+}
+
+/* ========================================================================= */
+/* ===== AJUSTES FINAIS E CONSISTÊNCIA ===== */
+/* ========================================================================= */
+
+/* Garante que a classe .card tenha estilos base consistentes */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl); /* Usar xl para consistência */
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal); /* Usar normal para hover */
+    margin-bottom: var(--spacing-6); /* Espaçamento padrão abaixo dos cards */
+}
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px); /* Aumentar um pouco o efeito */
+}
+
+/* Ajuste no botão de filtros mobile para mapas mentais */
+@media (max-width: 768px) {
+    #toggle-mindmap-filters-btn {
+        display: inline-flex;
+    }
+    #collapsible-mindmap-filters {
+        display: none; /* Começa escondido */
+        grid-template-columns: 1fr;
+        /* ... outros estilos de .flashcards-filters ... */
+    }
+    #collapsible-mindmap-filters[style*='display: grid'] {
+        display: grid;
+    }
+    .review-actions {
+        /* Garante que os botões de revisão fiquem lado a lado se couber */
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .review-actions .btn {
+        flex-grow: 1; /* Tenta ocupar espaço igual */
+        min-width: 150px; /* Largura mínima */
+    }
+}
+
+/* styles.css - Adicionar/Modificar no final */
+
+/* Garante que o corpo do modal possa crescer e tenha overflow controlado */
+.mindmap-view-modal .modal-body {
+    flex-grow: 1; /* Já deve existir, mas confirme */
+    position: relative;
+    overflow: hidden; /* Importante para o jsmind */
+    display: flex; /* Garante que o filho (map container) possa usar height: 100% */
+    min-height: 400px; /* Define uma altura mínima para garantir espaço */
+}
+
+/* Garante que o contêiner do jsmind ocupe TODO o espaço do modal-body */
+/* APLICAR ESTILO DIRETAMENTE AO ID GERADO É DIFÍCIL, VAMOS USAR UM SELETOR MAIS GENÉRICO */
+.mindmap-view-modal .modal-body > div[id^='jsmind_container_modal_'] {
+    /* Seleciona a div filha direta cujo ID começa com... */
+    width: 100%;
+    height: 100%; /* << GARANTE QUE OCUPE A ALTURA DO PAI (.modal-body) */
+    border: none !important;
+    background-color: var(--bg-primary) !important;
+    box-shadow: none !important;
+    position: relative;
+    overflow: hidden;
+    /* ===== TEMPORÁRIO PARA DEBUG: Adiciona borda vermelha ===== */
+    /* border: 2px dashed red !important; */
+    /* ========================================================= */
+}
+
+/* Certifique-se que o conteúdo do modal use flex-direction column */
+.mindmap-view-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    /* max-height e outras propriedades já definidas */
+}
+
+/* Garantir que apenas a seção ativa seja visível */
+main section {
+    display: none;
+}
+
+main section.active-section {
+    display: block;
+}
+
+/* Estilos para o dashboard */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* styles.css - ADICIONAR NO FINAL */
+
+/* Garante que o contêiner interno do jsmind (criado pela lib) possa se posicionar */
+.mindmap-view-modal .jsmind-inner {
+    position: absolute !important; /* Força posicionamento absoluto */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important; /* Controlado pelo draggable da lib */
+}
+
+/* Garante que o CANVAS tenha dimensões e seja visível */
+.mindmap-view-modal canvas.jsmind {
+    position: absolute !important; /* jsMind espera isso */
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important; /* Força ocupar largura */
+    height: 100% !important; /* Força ocupar altura */
+    display: block !important; /* Garante que não seja inline */
+    visibility: visible !important; /* Garante visibilidade */
+    opacity: 1 !important; /* Garante opacidade */
+    z-index: 1 !important; /* Garante z-index base */
+    /* ===== TEMPORÁRIO PARA DEBUG: Adiciona fundo verde ao canvas ===== */
+    /* background-color: rgba(0, 255, 0, 0.3) !important; */
+    /* ================================================================ */
+}
+
+/* Garante que o contêiner dos nós (jmnodes) também seja posicionado corretamente */
+.mindmap-view-modal jmnodes {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important; /* Acima do canvas */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* styles.css - SUBSTITUA estas regras */
+
+.mindmap-view-modal .modal-content {
+    max-width: 90vw;
+    width: auto;
+    max-height: 90vh; /* Mantém a altura máxima */
+    height: 90vh; /* TENTA definir uma altura explícita baseada na viewport */
+    padding: 0;
+    display: flex; /* Mantém flex */
+    flex-direction: column; /* Mantém coluna */
+    overflow: hidden; /* Mantém overflow */
+    border: 1px solid var(--primary-color); /* Borda para debug */
+}
+
+.mindmap-view-modal .modal-body {
+    flex: 1; /* USA flex: 1 que combina grow, shrink e basis */
+    position: relative;
+    overflow: hidden; /* Mantém */
+    display: flex; /* Mantém */
+    min-height: 0; /* NECESSÁRIO para flex container com overflow */
+    border: 1px solid lime; /* Borda para debug */
+}
+
+/* Seletor para o contêiner do mapa (mantido, mas sem height: 100% aqui) */
+.mindmap-view-modal .modal-body > div[id^='jsmind_container_modal_'] {
+    width: 100%;
+    /* height: 100%; REMOVIDO TEMPORARIAMENTE */
+    flex: 1; /* Tenta usar flex para ocupar espaço */
+    border: none !important;
+    background-color: var(--bg-primary) !important;
+    box-shadow: none !important;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid red; /* Borda para debug */
+}
+
+/* Regras para .jsmind-inner e canvas.jsmind DENTRO DO MODAL (mantidas) */
+.mindmap-view-modal .jsmind-inner {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+}
+
+.mindmap-view-modal canvas.jsmind {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+}
+.mindmap-view-modal jmnodes {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important; /* Acima do canvas */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* styles.css - SUBSTITUA a regra existente para .mindmap-view-modal .modal-content */
+
+.mindmap-view-modal .modal-content {
+    /* Largura: Ocupa 95% da largura da janela, mas com um máximo bem grande */
+    max-width: 95vw;
+    width: 1200px; /* Define uma largura base grande, mas max-width prevalece */
+
+    /* Altura: Ocupa 90% da altura da janela */
+    height: 90vh;
+    max-height: 90vh; /* Garante que não ultrapasse */
+
+    padding: 0; /* Mantém sem padding interno */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Mantém */
+    border: 1px solid var(--border-color); /* Remove a borda azul/lime de debug se ainda existir */
+    box-shadow: var(--shadow-xl); /* Sombra maior para destaque */
+}
+
+/* Garante que o corpo ocupe o espaço vertical restante */
+.mindmap-view-modal .modal-body {
+    flex: 1; /* Ocupa todo o espaço vertical disponível */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    min-height: 0; /* Necessário para flex com overflow */
+    /* border: 1px solid lime; Remover borda de debug */
+}
+
+/* Garante que o contêiner do mapa preencha o corpo */
+.mindmap-view-modal .modal-body > div[id^='jsmind_container_modal_'] {
+    width: 100%;
+    height: 100%; /* Ocupa toda a altura do .modal-body */
+    flex: 1; /* Garante que preencha se o pai for flex */
+    border: none !important;
+    background-color: var(--bg-primary) !important;
+    box-shadow: none !important;
+    position: relative;
+    overflow: hidden;
+    /* border: 1px solid red; Remover borda de debug */
+}
+
+/* Ajustes responsivos opcionais para telas menores */
+@media (max-width: 768px) {
+    .mindmap-view-modal .modal-content {
+        width: 95vw; /* Mantém largura responsiva */
+        height: 85vh; /* Altura um pouco menor em mobile */
+        max-height: 85vh;
+    }
+    .mindmap-view-modal .modal-header h3 {
+        font-size: var(--font-size-base); /* Título menor no header */
+    }
+    .mindmap-view-modal .modal-footer {
+        padding: var(--spacing-3) var(--spacing-4); /* Menos padding no footer */
+    }
+    .mindmap-view-modal .difficulty-rating-buttons .btn-difficulty {
+        padding: var(--spacing-2) var(--spacing-3); /* Botões menores */
+        font-size: var(--font-size-xs);
+    }
+}
+
+/* REMOVA ou COMENTE as bordas de debug anteriores se ainda estiverem ativas */
+/*
+.mindmap-view-modal .modal-content { border: 1px solid var(--primary-color); }
+.mindmap-view-modal .modal-body { border: 1px solid lime; }
+.mindmap-view-modal .modal-body > div[id^="jsmind_container_modal_"] { border: 1px solid red; }
+*/
+
+/* styles.css - SUBSTITUA estas regras */
+
+.mindmap-view-modal .modal-footer {
+    padding: var(--spacing-4) var(--spacing-6);
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Container dos botões de dificuldade */
+.mindmap-view-modal .difficulty-rating-buttons {
+    display: flex; /* Habilita Flexbox */
+    justify-content: center; /* Centraliza os botões horizontalmente */
+    align-items: center; /* Alinha verticalmente (se tiverem alturas diferentes) */
+    gap: var(--spacing-4); /* Espaço entre os botões */
+    flex-wrap: wrap; /* Permite quebrar linha se não couber */
+}
+
+/* Remove a tag <p> se ela estiver atrapalhando ou ajuste a margem */
+.mindmap-view-modal .difficulty-rating-buttons p {
+    display: none; /* Ou ajuste: margin: 0 var(--spacing-4) 0 0; text-align: left; */
+}
+
+/* Estilo individual dos botões */
+.mindmap-view-modal .difficulty-rating-buttons .btn-difficulty {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-3) var(--spacing-5); /* Padding um pouco maior */
+    margin: 0; /* Remove margens que podem atrapalhar o flex gap */
+    /* width: auto; Remove a largura calculada */
+    flex-basis: 100px; /* Largura base, mas pode crescer/encolher */
+    flex-grow: 1; /* Permite que cresçam para ocupar espaço */
+    max-width: 150px; /* Limita a largura máxima */
+}
+
+/* Estilo para botão ativo (quando a dificuldade já está selecionada) */
+.mindmap-view-modal .difficulty-rating-buttons .btn-difficulty.active {
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.5);
+    transform: scale(0.98);
+}
+
+/* styles.css - ADICIONAR NO FINAL */
+
+/* Garante que o contêiner interno permita eventos de mouse (para drag) */
+.mindmap-view-modal .jsmind-inner {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+    /* ===== NOVO: Garante que eventos passem se o fundo for transparente ===== */
+    /* background-color: rgba(0, 0, 0, 0);  Pode não ser necessário com as outras correções */
+    /* ====================================================================== */
+}
+
+/* Estilo para as linhas (paths) do SVG */
+.mindmap-view-modal svg.jsmind path {
+    stroke: var(
+        --text-muted
+    ) !important; /* Força a cor cinza claro nas linhas */
+    stroke-width: 2px !important; /* Garante a espessura */
+    fill: none !important; /* Garante que não haja preenchimento */
+}
+
+/* Remove estilos conflitantes anteriores do canvas se ainda existirem */
+.mindmap-view-modal canvas.jsmind {
+    /* Pode remover as regras width/height/background daqui se mudou para SVG */
+    /* Mantenha position, top, left, display, visibility, opacity, z-index */
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+    width: 100% !important; /* Mantenha estes */
+    height: 100% !important; /* Mantenha estes */
+}
+
+/* Garante que os nós fiquem acima das linhas SVG */
+.mindmap-view-modal jmnodes {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 2 !important; /* Acima do SVG/Canvas */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto; /* Garante que os nós possam ser clicados */
+}
+
+/* styles.css - ADICIONAR NO FINAL */
+
+/* Remove a restrição de largura máxima dos nós APENAS dentro do modal */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode {
+    max-width: none !important; /* Permite que o nó se expanda conforme o conteúdo */
+    /* Outros estilos como padding, font-size podem ser mantidos ou ajustados se necessário */
+    padding: 8px 10px; /* Um pouco menor para compensar */
+    font-size: 13px;
+}
+
+/* Ajuste opcional para o nó raiz dentro do modal */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode.root {
+    font-size: 16px;
+    padding: 10px 15px;
+}
+
+/* styles.css - SUBSTITUA a regra anterior para os nós no modal */
+
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode {
+    /* Reintroduz uma largura máxima razoável para o modal */
+    max-width: 300px !important;
+    white-space: normal !important; /* Mantém a quebra de linha */
+    overflow-wrap: break-word; /* Mantém quebra de palavras longas */
+    /* Estilos visuais mantidos ou ajustados */
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color); /* Garante uma borda base */
+    /* Cores de fundo/texto virão do tema 'belizehole' adaptado */
+}
+
+/* Ajuste nó raiz no modal */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode.root {
+    max-width: 400px !important; /* Raiz pode ser maior */
+    font-size: 16px;
+    padding: 12px 18px;
+}
+
+/* REMOVA as bordas de debug se ainda estiverem lá */
+/*
+.mindmap-view-modal .modal-content { border: none; }
+.mindmap-view-modal .modal-body { border: none; }
+.mindmap-view-modal .modal-body > div[id^="jsmind_container_modal_"] { border: none !important; }
+.mindmap-view-modal canvas.jsmind { background-color: transparent !important; }
+*/
+
+/* styles.css - SUBSTITUA a regra anterior para os nós no modal */
+
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode {
+    /* ===== AUMENTAR LARGURA MÁXIMA ===== */
+    max-width: 450px !important; /* Valor maior para permitir nós mais largos */
+    /* =================================== */
+    white-space: normal !important; /* Mantém quebra de linha */
+    overflow-wrap: break-word; /* Mantém quebra de palavras */
+    /* Estilos visuais mantidos */
+    padding: 10px 14px; /* Aumentar padding ligeiramente */
+    font-size: 13px;
+    line-height: 1.45; /* Ajustar espaçamento entre linhas se necessário */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+/* Ajuste nó raiz no modal (pode ser ainda maior) */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode.root {
+    max-width: 550px !important; /* Raiz pode ser bem maior */
+    font-size: 16px;
+    padding: 14px 20px;
+}
+
+/* (Mantenha as outras regras CSS para .jsmind-inner, canvas/svg, etc.) */
+
+/* styles.css - SUBSTITUA as regras anteriores para os nós no modal */
+
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode {
+    /* ===== REMOVIDO !important DE MAX-WIDTH ===== */
+    max-width: 450px; /* Mantém um valor generoso, mas sem !important */
+    /* =========================================== */
+    white-space: normal !important; /* Mantém a quebra de linha */
+    overflow-wrap: break-word; /* Mantém quebra de palavras */
+    /* Estilos visuais mantidos */
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+/* Ajuste nó raiz no modal */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode.root {
+    /* ===== REMOVIDO !important DE MAX-WIDTH ===== */
+    max-width: 550px; /* Raiz pode ser maior, sem !important */
+    /* =========================================== */
+    font-size: 16px;
+    padding: 14px 20px;
+}
+
+/* (Mantenha as outras regras CSS para .jsmind-inner, svg path, etc.) */
+
+/* styles.css - SUBSTITUA as regras anteriores para os nós no modal */
+
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode {
+    /* Remove max-width completamente */
+    /* max-width: 450px; */ /* REMOVIDO */
+
+    /* Adiciona uma largura mínima para evitar estreitamento excessivo */
+    min-width: 150px; /* Ajuste este valor se necessário */
+
+    width: auto; /* Permite que a largura cresça com o conteúdo */
+    white-space: normal !important;
+    overflow-wrap: break-word;
+
+    /* Reduzir um pouco o padding e a fonte para ajudar a conter a largura */
+    padding: 8px 10px;
+    font-size: 12px; /* Fonte ligeiramente menor */
+    line-height: 1.4;
+
+    /* Estilos visuais mantidos */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+/* Ajuste nó raiz no modal */
+.mindmap-view-modal div[id^='jsmind_container_modal_'] jmnode.root {
+    /* Remove max-width completamente */
+    /* max-width: 550px; */ /* REMOVIDO */
+
+    /* Adiciona uma largura mínima maior para a raiz */
+    min-width: 200px; /* Ajuste se necessário */
+
+    width: auto;
+    font-size: 15px; /* Fonte ligeiramente menor */
+    padding: 12px 16px; /* Padding ligeiramente menor */
+}
+
+/* (Mantenha as outras regras CSS para .jsmind-inner, svg path, etc.) */
+
+/* styles.css - SUBSTITUA as regras existentes para .stat-card e seus filhos */
+
+.stat-card {
+    text-align: center;
+    padding: var(--spacing-6);
+    /* REMOVIDO: background gradient aqui para aplicar condicionalmente */
+    /* background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); */
+    /* REMOVIDO: color: white; */
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color); /* Adiciona borda sutil */
+    transition: all var(--transition-fast);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Cores para MODO DARK (fundo gradiente, texto branco) */
+body.dark-mode .stat-card {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white; /* Cor padrão para texto dentro do card no dark mode */
+    border-color: transparent; /* Remove borda no dark mode com fundo escuro */
+}
+body.dark-mode .stat-card h3 {
+    color: rgba(255, 255, 255, 0.8); /* Branco mais suave para o título */
+}
+body.dark-mode .stat-card .stat-number {
+    color: white; /* Branco forte para o número */
+}
+body.dark-mode .stat-icon {
+    /* Ícone no dark mode */
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Cores para MODO LIGHT (fundo claro, texto escuro) */
+body:not(.dark-mode) .stat-card {
+    background-color: var(--card-bg); /* Fundo branco/claro do card */
+    color: var(--text-secondary); /* Cor padrão para texto */
+}
+body:not(.dark-mode) .stat-card h3 {
+    color: var(--text-muted); /* Cinza mais claro para o título */
+}
+body:not(.dark-mode) .stat-card .stat-number {
+    color: var(--primary-color); /* Cor primária (azul) para o número */
+}
+body:not(.dark-mode) .stat-icon {
+    /* Ícone no light mode */
+    background: linear-gradient(
+        135deg,
+        var(--primary-light),
+        var(--primary-color)
+    );
+    color: white;
+}
+
+/* Estilos do Título e Número (mantidos) */
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500; /* Peso mais leve */
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* Ícone (mantido) */
+.stat-icon {
+    font-size: var(--font-size-2xl); /* Reduzido um pouco */
+    margin: 0 auto var(--spacing-3) auto;
+    border-radius: 50%;
+    width: 50px; /* Reduzido */
+    height: 50px; /* Reduzido */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* styles.css - SUBSTITUA as regras existentes para o theme switch */
+
+/* Container do Switch */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    /* Dimensões reduzidas */
+    width: 40px; /* Era 50px */
+    height: 20px; /* Era 24px */
+    vertical-align: middle; /* Alinha melhor com o texto ao lado */
+}
+
+/* Esconde o checkbox original */
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* O fundo deslizante */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--gray-300); /* Cor de fundo quando desligado */
+    transition: var(--transition-normal);
+    border-radius: 20px; /* Raio ajustado para a nova altura */
+}
+
+/* O círculo que desliza */
+.slider:before {
+    position: absolute;
+    content: '';
+    /* Dimensões reduzidas */
+    height: 14px; /* Era 16px */
+    width: 14px; /* Era 16px */
+    /* Posição ajustada */
+    left: 3px; /* Era 4px */
+    bottom: 3px; /* Era 4px */
+    background-color: white;
+    transition: var(--transition-normal);
+    border-radius: 50%; /* Mantém círculo */
+}
+
+/* Estilo quando LIGADO (checked) */
+input:checked + .slider {
+    /* Usar gradiente ou cor sólida */
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    /* background-color: var(--primary-color); */ /* Alternativa */
+}
+
+input:checked + .slider:before {
+    /* Movimento ajustado para a nova largura */
+    transform: translateX(20px); /* Era 26px (40 - 14 - 3*2) */
+}
+
+/* Garante alinhamento correto no form-group */
+.setting-group .form-group label:first-of-type {
+    /* O label "Modo Escuro:" */
+    margin-right: var(--spacing-3);
+}
+.setting-group .form-group {
+    display: flex;
+    align-items: center; /* Alinha o texto e o switch verticalmente */
+}
+
+/* styles.css - SUBSTITUA TODAS as regras antigas E COLE ESTE BLOCO NO FINAL */
+
+/* Container do Switch */
+.theme-switch {
+    position: relative !important;
+    display: inline-block !important;
+    /* Dimensões reduzidas */
+    width: 40px !important; /* Era 50px */
+    height: 20px !important; /* Era 24px */
+    vertical-align: middle !important; /* Alinha melhor com o texto ao lado */
+}
+
+/* Esconde o checkbox original */
+.theme-switch input {
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* O fundo deslizante */
+.slider {
+    position: absolute !important;
+    cursor: pointer !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: var(--gray-300) !important; /* Cor desligado */
+    transition: var(--transition-normal) !important;
+    border-radius: 20px !important; /* Raio ajustado */
+}
+
+/* O círculo que desliza */
+.slider:before {
+    position: absolute !important;
+    content: '' !important;
+    /* Dimensões reduzidas */
+    height: 14px !important; /* Era 16px */
+    width: 14px !important; /* Era 16px */
+    /* Posição ajustada */
+    left: 3px !important; /* Era 4px */
+    bottom: 3px !important; /* Era 4px */
+    background-color: white !important;
+    transition: var(--transition-normal) !important;
+    border-radius: 50% !important; /* Mantém círculo */
+}
+
+/* Estilo quando LIGADO (checked) */
+input:checked + .slider {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    ) !important;
+}
+
+input:checked + .slider:before {
+    /* Movimento ajustado */
+    transform: translateX(20px) !important; /* Era 26px */
+}
+
+/* Garante alinhamento correto no form-group (mantido) */
+.setting-group .form-group label:first-of-type {
+    /* O label "Modo Escuro:" */
+    margin-right: var(--spacing-3);
+}
+.setting-group .form-group {
+    display: flex;
+    align-items: center;
+}
+
+/* styles.css - Adicionar estas regras ao FINAL do arquivo */
+
+/* --- Estilização da Nova Seção de Upload de PDFs --- */
+
+.upload-section {
+    margin-top: auto; /* Empurra para o final da sidebar */
+    padding: var(--spacing-5) var(--spacing-4); /* Ajuste de padding */
+    border-top: 1px solid var(--border-color); /* Linha divisória */
+    background-color: var(--bg-secondary); /* Fundo sutil */
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3); /* Espaçamento entre os elementos */
+}
+
+.upload-section h3 {
+    font-size: var(--font-size-base); /* Tamanho menor para o título */
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0 0 var(--spacing-1) 0; /* Ajuste de margem */
+    display: flex; /* Para alinhar o ícone */
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.upload-section .upload-icon {
+    font-size: var(--font-size-lg);
+}
+
+/* Label estilizado como botão */
+.upload-trigger-btn {
+    width: 100%;
+    justify-content: center; /* Centraliza conteúdo (ícone + texto) */
+    background-color: var(--bg-tertiary); /* Cor mais sutil */
+    border-color: var(--border-color);
+    color: var(--text-secondary); /* Cor de texto mais sutil */
+}
+
+.upload-trigger-btn:hover {
+    background-color: var(--gray-200); /* Efeito hover */
+    color: var(--text-primary);
+    border-color: var(--gray-300);
+}
+
+.upload-trigger-btn svg {
+    margin-right: var(--spacing-2); /* Espaço entre ícone e texto */
+}
+
+/* Área de exibição dos nomes dos arquivos */
+.file-list-display {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    background-color: var(
+        --card-bg
+    ); /* Fundo claro/escuro dependendo do tema */
+    border: 1px dashed var(--border-color); /* Borda tracejada sutil */
+    border-radius: var(--radius-md);
+    padding: var(--spacing-2) var(--spacing-3);
+    min-height: 30px; /* Altura mínima */
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Mostra '...' se nomes forem longos */
+    white-space: nowrap; /* Impede quebra de linha */
+    line-height: 1.4; /* Ajuste para centralizar verticalmente */
+}
+
+/* Botão de processar */
+.process-btn {
+    width: 100%;
+    justify-content: center; /* Centraliza conteúdo (ícone + texto) */
+}
+
+.process-btn svg {
+    margin-right: var(--spacing-2);
+}
+
+/* Remove o estilo antigo do .file-input se ainda existir (ou garanta que está escondido) */
+/* (O input já está escondido com style="display: none;" no HTML) */
+/* Se você tinha regras CSS para .file-input, pode removê-las ou comentá-las */
+/*
+.file-input {
+    cursor: pointer;
+    padding: var(--spacing-4);
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+    border-style: dashed;
+    width: 100%;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+}
+.file-input:hover {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), var(--bg-tertiary));
+}
+*/

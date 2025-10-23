@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Lexia - Estudo Jurídico Inteligente</title>
+        <link rel="stylesheet" href="styles.css" />
+        <link rel="stylesheet" href="article-styles.css" />
+        <link rel="stylesheet" href="libs/jsmind/jsmind.css" />
+    </head>
+    <body>
+        <div id="app-container">
+            <button class="mobile-menu-toggle" aria-label="Abrir menu">
+                ☰
+            </button>
+            <div class="mobile-overlay"></div>
+
+            <aside id="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">Lexia</div>
+                    <button
+                        id="sidebar-toggle"
+                        class="sidebar-toggle"
+                        aria-label="Recolher menu"
+                    >
+                        ‹
+                    </button>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#dashboard">Dashboard</a></li>
+                        <li><a href="#study-track">Trilha de Estudo</a></li>
+                        <li><a href="#flashcards">Flashcards</a></li>
+                        <li><a href="#quiz">Quiz Adaptativo</a></li>
+                        <li><a href="#mindmaps">Mapas Mentais</a></li>
+                        <li><a href="#chat">Chat IA</a></li>
+                        <li><a href="#settings">Configurações</a></li>
+                    </ul>
+                </nav>
+                <div class="upload-section">
+                    <h3><span class="upload-icon">📄</span> Carregar PDFs</h3>
+
+                    <input
+                        type="file"
+                        id="pdf-upload"
+                        multiple
+                        accept=".pdf"
+                        style="display: none"
+                    />
+
+                    <label
+                        for="pdf-upload"
+                        class="btn btn-secondary upload-trigger-btn"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            viewBox="0 0 16 16"
+                        >
+                            <path
+                                d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"
+                            />
+                            <path
+                                d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"
+                            />
+                        </svg>
+                        Escolher Arquivos
+                    </label>
+
+                    <div id="pdf-file-list" class="file-list-display">
+                        Nenhum arquivo selecionado
+                    </div>
+
+                    <button
+                        id="process-pdfs"
+                        class="btn btn-primary process-btn"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            viewBox="0 0 16 16"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"
+                            />
+                            <path
+                                d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"
+                            />
+                            <path
+                                d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"
+                            />
+                        </svg>
+                        Processar PDFs
+                    </button>
+                </div>
+            </aside>
+
+            <main id="main-content">
+                <section id="dashboard" class="active-section">
+                    <h2>Dashboard</h2>
+                    <p>
+                        Bem-vindo ao Lexia! Aqui você verá seu progresso e
+                        revisões diárias.
+                    </p>
+                </section>
+
+                <section id="study-track">
+                    <h2>Trilha de Estudo</h2>
+                    <div id="discipline-blocks"></div>
+                </section>
+
+                <section id="reading-topic">
+                    <h2>Leitura por Tópico</h2>
+                    <div id="topic-content"></div>
+                </section>
+
+                <section id="flashcards">
+                    <h2>Flashcards</h2>
+                    <div id="flashcard-area"></div>
+                </section>
+
+                <section id="quiz">
+                    <h2>Quiz Adaptativo</h2>
+                    <div id="quiz-area"></div>
+                </section>
+
+                <section id="mindmaps">
+                    <h2><span class="section-icon">🧠</span> Mapas Mentais</h2>
+
+                    <div class="mindmaps-container">
+                        <div class="generation-section card">
+                            <h3>⚡ Gerar Novos Mapas Mentais</h3>
+                            <div
+                                class="tracks-selection"
+                                id="mindmap-article-selection-area"
+                            >
+                                <p>Carregando artigos...</p>
+                            </div>
+                            <button
+                                id="generate-selected-mindmaps"
+                                class="btn btn-primary generate-btn"
+                                disabled
+                            >
+                                🚀 Gerar Mapa(s)
+                            </button>
+                        </div>
+
+                        <div class="existing-content card">
+                            <div class="section-header">
+                                <h3>📚 Meus Mapas Mentais</h3>
+                                <div class="content-stats" id="mindmaps-stats">
+                                    <span class="stat">Visíveis: 0</span>
+                                    <span class="stat">Favoritos: 0</span>
+                                    <span class="stat">Arquivados: 0</span>
+                                </div>
+                            </div>
+
+                            <div class="review-actions">
+                                <button
+                                    id="review-all-mindmaps-btn"
+                                    class="btn btn-secondary"
+                                    disabled
+                                >
+                                    Revisar Todos
+                                </button>
+                                <button
+                                    id="review-mindmaps-by-difficulty-btn"
+                                    class="btn btn-secondary"
+                                    disabled
+                                >
+                                    Revisar por Dificuldade...
+                                </button>
+                            </div>
+
+                            <button
+                                id="toggle-mindmap-filters-btn"
+                                class="btn btn-secondary toggle-filters-btn"
+                            >
+                                Filtros <span>▾</span>
+                            </button>
+
+                            <div
+                                class="content-filters"
+                                id="collapsible-mindmap-filters"
+                            >
+                                <div class="filter-group">
+                                    <label>Filtrar por:</label>
+                                    <select
+                                        id="mindmaps-view-filter"
+                                        class="filter-select"
+                                    >
+                                        <option value="all">Ativos</option>
+                                        <option value="favorites">
+                                            Favoritos
+                                        </option>
+                                        <option value="archived">
+                                            Arquivados
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Ordenar por:</label>
+                                    <select
+                                        id="mindmaps-sort-filter"
+                                        class="filter-select"
+                                    >
+                                        <option value="recent">
+                                            Mais Recentes
+                                        </option>
+                                        <option value="oldest">
+                                            Mais Antigos
+                                        </option>
+                                        <option value="name">
+                                            Nome/Artigo
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Trilha:</label>
+                                    <select
+                                        id="mindmaps-track-filter"
+                                        class="filter-select"
+                                    >
+                                        <option value="all">
+                                            Todas as Trilhas
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Dificuldade:</label>
+                                    <select
+                                        id="mindmaps-difficulty-filter"
+                                        class="filter-select"
+                                    >
+                                        <option value="all">Todas</option>
+                                        <option value="easy">Fácil</option>
+                                        <option value="medium">Médio</option>
+                                        <option value="difficult">
+                                            Difícil
+                                        </option>
+                                        <option value="unrated">
+                                            Não Classificado
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Itens por pág.:</label>
+                                    <select
+                                        id="mindmaps-per-page-filter"
+                                        class="filter-select"
+                                    >
+                                        <option value="12">12</option>
+                                        <option value="24">24</option>
+                                        <option value="48">48</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="content-grid" id="mindmaps-grid">
+                                <p class="no-items">
+                                    Nenhum mapa mental gerado ainda.
+                                </p>
+                            </div>
+
+                            <div
+                                class="pagination-controls"
+                                id="mindmaps-pagination"
+                            >
+                                <button class="btn" disabled>Anterior</button>
+                                <span class="page-info"
+                                    >Página 1 de 1 (0 mapas)</span
+                                >
+                                <button class="btn" disabled>Próxima</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="chat">
+                    <h2>Chat IA</h2>
+                    <div id="chat-interface">
+                        <div id="chat-messages"></div>
+                        <div id="chat-suggestions-container"></div>
+                        <div class="chat-input-container">
+                            <button
+                                id="show-suggestions-btn"
+                                class="btn btn-secondary btn-icon"
+                                title="Mostrar Sugestões de Perguntas"
+                            >
+                                💡
+                            </button>
+                            <textarea
+                                id="chat-input"
+                                placeholder="Pergunte algo sobre os PDFs ou seu progresso..."
+                                rows="1"
+                            ></textarea>
+                            <button
+                                id="send-chat"
+                                class="btn btn-primary btn-icon"
+                                title="Enviar Mensagem"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon
+                                        points="22 2 15 22 11 13 2 9 22 2"
+                                    ></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="settings">
+                    <h2>Configurações</h2>
+                    <div class="settings-container">
+                        <div class="setting-group">
+                            <h3>Configuração da API</h3>
+                            <div class="form-group">
+                                <label for="gemini-api-key"
+                                    >Chave da API Gemini:</label
+                                >
+                                <input
+                                    type="password"
+                                    id="gemini-api-key"
+                                    class="form-control"
+                                    placeholder="Insira sua chave da API"
+                                />
+                                <button
+                                    id="save-api-key"
+                                    class="btn btn-primary"
+                                >
+                                    Salvar Chave
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>Backup e Restauração</h3>
+                            <div class="form-group">
+                                <button
+                                    id="export-data"
+                                    class="btn btn-secondary"
+                                >
+                                    Exportar Dados (JSON)
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label
+                                    for="import-data"
+                                    style="cursor: pointer"
+                                    class="btn btn-secondary"
+                                >
+                                    Importar Dados (JSON)
+                                </label>
+                                <input
+                                    type="file"
+                                    id="import-data"
+                                    accept=".json"
+                                    style="display: none"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>Aparência</h3>
+                            <div class="form-group">
+                                <label for="theme-switch">Modo Escuro:</label>
+                                <label class="theme-switch">
+                                    <input type="checkbox" id="theme-switch" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const sidebar = document.getElementById('sidebar');
+                const mobileMenuToggle = document.querySelector(
+                    '.mobile-menu-toggle'
+                );
+                const mobileOverlay = document.querySelector('.mobile-overlay');
+                const sidebarToggle = document.getElementById('sidebar-toggle');
+                const mainContent = document.getElementById('main-content');
+
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.addEventListener('click', function () {
+                        sidebar.classList.add('active');
+                        if (mobileOverlay)
+                            mobileOverlay.classList.add('active');
+                    });
+                }
+                if (mobileOverlay) {
+                    mobileOverlay.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        mobileOverlay.classList.remove('active');
+                    });
+                }
+                const navLinks = document.querySelectorAll('#sidebar nav a');
+                navLinks.forEach((link) => {
+                    link.addEventListener('click', function () {
+                        if (
+                            mobileOverlay &&
+                            mobileOverlay.classList.contains('active')
+                        ) {
+                            sidebar.classList.remove('active');
+                            mobileOverlay.classList.remove('active');
+                        }
+                    });
+                });
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function () {
+                        sidebar.classList.toggle('collapsed');
+                        this.innerHTML = sidebar.classList.contains('collapsed')
+                            ? '›'
+                            : '‹';
+                        this.setAttribute(
+                            'aria-label',
+                            sidebar.classList.contains('collapsed')
+                                ? 'Expandir menu'
+                                : 'Recolher menu'
+                        );
+                        localStorage.setItem(
+                            'sidebarCollapsed',
+                            sidebar.classList.contains('collapsed')
+                        );
+                        if (window.innerWidth > 768) {
+                            mainContent.style.marginLeft =
+                                sidebar.classList.contains('collapsed')
+                                    ? '60px'
+                                    : '280px';
+                        }
+                    });
+                    const sidebarCollapsed =
+                        localStorage.getItem('sidebarCollapsed') === 'true';
+                    if (sidebarCollapsed && window.innerWidth > 768) {
+                        sidebar.classList.add('collapsed');
+                        sidebarToggle.innerHTML = '›';
+                        sidebarToggle.setAttribute(
+                            'aria-label',
+                            'Expandir menu'
+                        );
+                        mainContent.style.marginLeft = '60px';
+                    } else if (window.innerWidth > 768) {
+                        mainContent.style.marginLeft = '280px';
+                    } else {
+                        mainContent.style.marginLeft = '0px';
+                    }
+                }
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    const inputs = document.querySelectorAll(
+                        'input, select, textarea'
+                    );
+                    inputs.forEach((input) => {
+                        input.style.fontSize = '16px';
+                    });
+                }
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('collapsed');
+                        mainContent.style.marginLeft = '0px';
+                        if (sidebarToggle) {
+                            sidebarToggle.innerHTML = '‹';
+                            sidebarToggle.setAttribute(
+                                'aria-label',
+                                'Recolher menu'
+                            );
+                        }
+                    } else {
+                        const isCollapsed =
+                            sidebar.classList.contains('collapsed');
+                        mainContent.style.marginLeft = isCollapsed
+                            ? '60px'
+                            : '280px';
+                    }
+                });
+            });
+        </script>
+        <script src="libs/pdfjs/pdf.js"></script>
+        <script>
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'libs/pdfjs/pdf.worker.js';
+        </script>
+        <script src="article-selection.js"></script>
+        <script src="app.js"></script>
+        <script src="libs/jsmind/jsmind.js"></script>
+    </body>
+</html>
