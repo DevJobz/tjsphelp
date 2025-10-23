@@ -3268,6 +3268,7 @@ function setupMindMapEventListeners() {
  * @function showMindMapModal
  * @description Cria e exibe um modal para visualizar um mapa mental específico.
  * PASSA O ELEMENTO CONTÊINER DIRETAMENTE para a função de renderização.
+ * **Modificado para remover listeners de toque ao fechar.**
  * @param {string} mindMapId - O ID do mapa mental a ser visualizado.
  */
 function showMindMapModal(mindMapId) {
@@ -3287,9 +3288,7 @@ function showMindMapModal(mindMapId) {
 
     const currentDifficulty = mindMap.difficultyLevel || 'unrated';
     const displayName = mindMap.customName || mindMap.articleReference;
-    // ===== NOVO: Gerar ID único para o contêiner interno =====
     const modalContainerId = `jsmind_container_modal_${mindMapId}`;
-    // =======================================================
 
     modalOverlay.innerHTML = `
         <div class="modal-content">
@@ -3322,7 +3321,6 @@ function showMindMapModal(mindMapId) {
     document.body.appendChild(modalOverlay);
 
     // --- Renderização do Mapa DENTRO do Modal ---
-    // ===== CORREÇÃO: Encontra o elemento DEPOIS de adicionar o modal ao DOM =====
     const mapContainerElement = modalOverlay.querySelector(
         `#${modalContainerId}`
     );
@@ -3333,30 +3331,46 @@ function showMindMapModal(mindMapId) {
         console.error(
             `[MindMap Modal] ERRO CRÍTICO: Não foi possível encontrar #${modalContainerId} no modal recém-criado.`
         );
-        // Tenta fechar o modal ou exibir uma mensagem de erro dentro dele
         if (modalOverlay.parentNode) document.body.removeChild(modalOverlay);
         alert('Erro ao preparar a área de visualização do mapa mental.');
-        return; // Aborta se o contêiner não for encontrado
+        return;
     }
-    // =========================================================================
 
-    // --- Listeners do Modal (sem alterações aqui) ---
+    // --- Função interna para fechar o modal e limpar recursos ---
+    const closeModal = () => {
+        console.log('[MindMap Modal] Fechando modal e limpando recursos...');
+        removeMindMapTouchListeners(); // <-- CHAMA A REMOÇÃO DOS LISTENERS DE TOQUE
+        if (currentMindMapInstance && currentMindMapInstance.destroy) {
+            console.log('[MindMap Modal] Destruindo instância jsMind...');
+            currentMindMapInstance.destroy(); // Destroi a instância jsMind
+            currentMindMapInstance = null;
+        } else {
+            console.log(
+                '[MindMap Modal] Nenhuma instância jsMind para destruir.'
+            );
+        }
+        if (modalOverlay.parentNode) {
+            document.body.removeChild(modalOverlay);
+            console.log('[MindMap Modal] Modal removido do DOM.');
+        } else {
+            console.log('[MindMap Modal] Modal já havia sido removido.');
+        }
+    };
+
+    // --- Listeners do Modal ---
+    // Botão de fechar (X)
     modalOverlay
         .querySelector('.close-modal-btn')
-        .addEventListener('click', () => {
-            if (modalOverlay.parentNode)
-                document.body.removeChild(modalOverlay);
-            currentMindMapInstance = null; // Limpa a instância do mapa do modal
-        });
+        .addEventListener('click', closeModal); // Chama a função closeModal
 
+    // Clique fora do modal
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) {
-            if (modalOverlay.parentNode)
-                document.body.removeChild(modalOverlay);
-            currentMindMapInstance = null;
+            closeModal(); // Chama a função closeModal
         }
     });
 
+    // Botões de classificação de dificuldade
     modalOverlay
         .querySelectorAll('.difficulty-rating-buttons button')
         .forEach((button) => {
@@ -3372,10 +3386,6 @@ function showMindMapModal(mindMapId) {
                         `[MindMap Modal] Mapa ${mindMapId} classificado como: ${newDifficulty}`
                     );
 
-                    // Atualiza visualmente os botões no modal (opcional, já que vai fechar)
-                    // modalOverlay.querySelectorAll('.difficulty-rating-buttons button').forEach(btn => btn.classList.remove('active'));
-                    // e.target.classList.add('active');
-
                     renderMindMapsSection(); // Re-renderiza a lista principal para refletir a mudança no badge
                     showToast(
                         `Mapa classificado como ${getDifficultyLabel(
@@ -3383,12 +3393,7 @@ function showMindMapModal(mindMapId) {
                         )}.`
                     ); // Mostra notificação
 
-                    // ===== NOVO: Fecha o modal =====
-                    if (modalOverlay.parentNode) {
-                        document.body.removeChild(modalOverlay);
-                    }
-                    currentMindMapInstance = null; // Limpa a instância do mapa do modal
-                    // ==============================
+                    closeModal(); // Fecha o modal após classificar
                 }
             });
         });
@@ -3398,28 +3403,27 @@ function showMindMapModal(mindMapId) {
 
 // app.js - Função displayMindMapInModal COMPLETA (com logs e verificações)
 
+// app.js - Função displayMindMapInModal COMPLETA (com logs, verificações E pinch-to-zoom)
+
 /**
  * @function displayMindMapInModal
- * @description Renderiza um mapa mental usando jsMind DENTRO de um ELEMENTO contêiner específico (modal).
+ * @description Renderiza um mapa mental usando jsMind DENTRO de um ELEMENTO contêiner específico (modal),
+ * incluindo suporte a zoom via scroll do mouse E pinch-to-zoom em touchscreens.
  * @param {object} mindMapData - O objeto JSON do mapa mental (formato node_tree).
  * @param {HTMLElement} containerElement - O ELEMENTO HTML onde o mapa será renderizado.
  */
 function displayMindMapInModal(mindMapData, containerElement) {
-    // ===== CORREÇÃO: Verifica se o ELEMENTO foi passado corretamente =====
     if (!containerElement || !(containerElement instanceof HTMLElement)) {
         console.error(
             `[MindMap Modal] ERRO: Elemento contêiner inválido fornecido para renderização.`
         );
-        // Tenta exibir erro no lugar se possível
         if (containerElement)
             containerElement.innerHTML =
                 '<p class="mindmap-hint" style="color: var(--error-color);">Erro: Área de renderização inválida.</p>';
         return;
     }
-    const containerId = containerElement.id; // Pega o ID do elemento
-    // ====================================================================
+    const containerId = containerElement.id;
 
-    // Verifica jsMind (mantido)
     if (typeof jsMind === 'undefined') {
         console.error(
             '[MindMap Modal] ERRO CRÍTICO: Biblioteca jsMind não carregada.'
@@ -3429,7 +3433,6 @@ function displayMindMapInModal(mindMapData, containerElement) {
         return;
     }
 
-    // Valida dados (mantido)
     if (
         !mindMapData ||
         mindMapData.format !== 'node_tree' ||
@@ -3445,7 +3448,6 @@ function displayMindMapInModal(mindMapData, containerElement) {
         return;
     }
 
-    // Opções (COM HMARGIN AUMENTADO)
     const options = {
         container: containerId,
         theme: 'belizehole',
@@ -3453,105 +3455,179 @@ function displayMindMapInModal(mindMapData, containerElement) {
         mode: 'full',
         support_html: true,
         view: {
-            engine: 'svg',
-            // ===== HMARGIN AUMENTADO =====
-            hmargin: 250, // Mais margem horizontal GERAL (afasta das bordas)
-            // =============================
-            vmargin: 80, // Margem vertical mantida
+            engine: 'svg', // Mantido SVG, geralmente melhor para interatividade
+            hmargin: 150, // Margem horizontal ajustada
+            vmargin: 80,
             line_width: 2,
-            line_color: '#94a3b8',
-            draggable: true,
+            line_color: '#94a3b8', // Cor da linha (pode usar var(--text-muted))
+            draggable: true, // Habilita arrastar (deve funcionar para touch também)
             hide_scrollbars_when_draggable: true,
-            node_overflow: 'wrap',
+            node_overflow: 'wrap', // Garante quebra de linha
         },
         layout: {
-            // Espaçamentos entre nós mantidos altos
-            hspace: 120,
-            vspace: 60,
-            pspace: 25,
+            hspace: 100, // Ajustar espaçamentos
+            vspace: 50,
+            pspace: 20,
         },
-        shortcut: { enable: true, mappings: {} },
+        shortcut: { enable: true, mappings: {} }, // Atalhos (podem não funcionar em mobile)
     };
 
-    // ===== CORREÇÃO: Usa containerElement diretamente =====
-    containerElement.innerHTML = ''; // Limpa "Carregando..."
-    containerElement.style.display = 'block'; // Garante visibilidade
-    // Altura/Largura devem ser controladas pelo CSS do '.modal-body > div'
-    // ====================================================
+    containerElement.innerHTML = '';
+    containerElement.style.display = 'block';
 
     try {
         console.log(
             `[MindMap Modal] Inicializando jsMind em #${containerId}...`
         );
-        currentMindMapInstance = new jsMind(options); // A instância ainda usa o ID
+        // Limpa a instância anterior se existir (importante ao reabrir modais)
+        if (currentMindMapInstance && currentMindMapInstance.destroy) {
+            console.log('[MindMap Modal] Destruindo instância anterior...');
+            // Tenta remover listeners antigos explicitamente antes de destruir
+            removeMindMapTouchListeners(); // Chama a função para remover listeners antigos
+            currentMindMapInstance.destroy();
+        }
+        currentMindMapInstance = new jsMind(options);
 
-        // Habilita zoom por scroll NO PAINEL DO MODAL (mantido)
+        // --- Habilita zoom por scroll do mouse ---
         if (
             currentMindMapInstance.view &&
             currentMindMapInstance.view.e_panel
         ) {
             const panel = currentMindMapInstance.view.e_panel;
-            panel.removeEventListener('wheel', handleMindMapZoom);
+            panel.removeEventListener('wheel', handleMindMapZoom); // Remove listener antigo
             panel.addEventListener('wheel', handleMindMapZoom, {
                 passive: false,
             });
-            console.log('[MindMap Modal] Zoom com scroll habilitado.');
+            console.log('[MindMap Modal] Zoom com scroll (mouse) habilitado.');
+
+            // --- NOVO: Habilita pinch-to-zoom para touch ---
+            addMindMapTouchListeners(panel); // Chama a função para adicionar listeners de toque
+            // ---------------------------------------------
         } else {
             console.warn(
-                '[MindMap Modal] e_panel não encontrado para listener de zoom.'
+                '[MindMap Modal] e_panel não encontrado para listeners de zoom.'
             );
         }
 
-        // ===== ADICIONAR VERIFICAÇÃO APÓS O SHOW =====
         currentMindMapInstance.show(mindMapData);
-        // A função show não retorna um valor útil padrão, mas verificamos se algum erro ocorreu
-        // A principal verificação é se o canvas foi criado (feito no setTimeout abaixo)
         console.log(
             '[MindMap Modal] Mapa exibido com sucesso (chamada a show() completada).'
         );
-        // ===========================================
 
         // Verifica renderização (mantido)
         setTimeout(() => {
-            // ===== CORREÇÃO: Busca dentro do containerElement =====
             const engineElement = containerElement.querySelector('canvas, svg');
-            // ====================================================
             if (engineElement) {
                 console.log(
                     `[MindMap Modal] Elemento <${engineElement.tagName.toLowerCase()}> encontrado.`
                 );
-                // ===== NOVO: Verificar dimensões do canvas =====
                 console.log(
-                    `[MindMap Modal] Dimensões computadas do Canvas: ${engineElement.offsetWidth}w x ${engineElement.offsetHeight}h`
+                    `[MindMap Modal] Dimensões computadas: ${engineElement.offsetWidth}w x ${engineElement.offsetHeight}h`
                 );
                 if (
                     engineElement.offsetWidth === 0 ||
                     engineElement.offsetHeight === 0
                 ) {
                     console.warn(
-                        '[MindMap Modal] Atenção: O elemento Canvas foi criado, mas tem dimensões zero. Verifique o CSS.'
+                        '[MindMap Modal] Atenção: O elemento engine foi criado, mas tem dimensões zero. Verifique o CSS.'
                     );
                 }
-                // =============================================
             } else {
                 console.warn(
                     '[MindMap Modal] Elemento <canvas> ou <svg> NÃO encontrado após show(). Renderização falhou?'
                 );
             }
-        }, 300); // Delay ligeiramente maior para garantir renderização
+        }, 300);
     } catch (e) {
         console.error(
             '[MindMap Modal] ERRO CRÍTICO ao inicializar/exibir jsMind:',
             e
         );
         if (e.stack) console.error('Stack Trace:', e.stack);
-        // ===== CORREÇÃO: Usa containerElement para erro =====
         containerElement.innerHTML =
             '<p class="mindmap-hint" style="color: var(--error-color);">Erro ao renderizar mapa.</p>';
-        // ====================================================
-        currentMindMapInstance = null; // Limpa instância em caso de erro
+        currentMindMapInstance = null;
     }
 }
+
+// --- FUNÇÕES AUXILIARES PARA LISTENERS DE TOQUE (Adicione estas FORA da função displayMindMapInModal) ---
+
+let initialDistance = null;
+let mindMapPanel = null; // Guarda referência ao painel para remover listeners
+let isPinching = false; // Flag para controlar o estado de pinça
+
+function touchStartHandler(event) {
+    if (event.touches.length === 2) {
+        event.preventDefault(); // Previne zoom padrão do navegador
+        isPinching = true;
+        initialDistance = Math.hypot(
+            event.touches[0].pageX - event.touches[1].pageX,
+            event.touches[0].pageY - event.touches[1].pageY
+        );
+        // console.log("[MindMap Touch] Pinch Start - Initial Distance:", initialDistance); // Debug
+    }
+}
+
+function touchMoveHandler(event) {
+    if (isPinching && event.touches.length === 2) {
+        event.preventDefault(); // Previne scroll/zoom padrão durante o movimento
+        const currentDistance = Math.hypot(
+            event.touches[0].pageX - event.touches[1].pageX,
+            event.touches[0].pageY - event.touches[1].pageY
+        );
+        const deltaDistance = currentDistance - initialDistance;
+        const zoomSensitivity = 5; // Ajuste a sensibilidade conforme necessário
+
+        // console.log("[MindMap Touch] Pinch Move - Current:", currentDistance, "Delta:", deltaDistance); // Debug
+
+        if (Math.abs(deltaDistance) > zoomSensitivity) {
+            if (deltaDistance > 0) {
+                // Dedos se afastando -> Zoom In
+                currentMindMapInstance.view.zoomIn();
+                // console.log("[MindMap Touch] Zoom In"); // Debug
+            } else {
+                // Dedos se aproximando -> Zoom Out
+                currentMindMapInstance.view.zoomOut();
+                // console.log("[MindMap Touch] Zoom Out"); // Debug
+            }
+            // Atualiza a distância inicial para o próximo movimento, tornando o zoom mais contínuo
+            initialDistance = currentDistance;
+        }
+    }
+}
+
+function touchEndHandler(event) {
+    if (event.touches.length < 2) {
+        // console.log("[MindMap Touch] Pinch End"); // Debug
+        isPinching = false;
+        initialDistance = null;
+    }
+}
+
+// Função para adicionar os listeners de toque
+function addMindMapTouchListeners(panel) {
+    if (!panel) return;
+    mindMapPanel = panel; // Guarda a referência
+    panel.addEventListener('touchstart', touchStartHandler, { passive: false });
+    panel.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    panel.addEventListener('touchend', touchEndHandler, { passive: false });
+    panel.addEventListener('touchcancel', touchEndHandler, { passive: false }); // Adiciona touchcancel também
+    console.log('[MindMap Modal] Listeners de toque (pinch-zoom) adicionados.');
+}
+
+// Função para remover os listeners de toque (CHAMAR AO FECHAR O MODAL)
+function removeMindMapTouchListeners() {
+    if (!mindMapPanel) return;
+    mindMapPanel.removeEventListener('touchstart', touchStartHandler);
+    mindMapPanel.removeEventListener('touchmove', touchMoveHandler);
+    mindMapPanel.removeEventListener('touchend', touchEndHandler);
+    mindMapPanel.removeEventListener('touchcancel', touchEndHandler);
+    mindMapPanel = null; // Limpa a referência
+    initialDistance = null;
+    isPinching = false;
+    console.log('[MindMap Modal] Listeners de toque (pinch-zoom) removidos.');
+}
+
 /**
  * @function buildMindMapPrompt
  * @description Constrói o prompt detalhado para a API Gemini gerar o mapa mental em JSON.
