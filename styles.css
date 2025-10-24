@@ -7866,20 +7866,20 @@ body {
     }
 
     /* Dentro de @media (max-width: 768px) */
-.mindmap-view-modal .jsmind-inner {
-    touch-action: pan-x pan-y pinch-zoom; /* ESSENCIAL */
-    -webkit-overflow-scrolling: touch;
-    cursor: grab;
-}
-.mindmap-view-modal .jsmind-inner:active {
-    cursor: grabbing;
-}
-/* Garante que elementos SVG/Canvas recebam os eventos */
-.mindmap-view-modal svg.jsmind,
-.mindmap-view-modal canvas.jsmind,
-.mindmap-view-modal jmnodes {
-    touch-action: none; /* Deixa a biblioteca jsMind controlar totalmente */
-}
+    .mindmap-view-modal .jsmind-inner {
+        touch-action: pan-x pan-y pinch-zoom; /* ESSENCIAL */
+        -webkit-overflow-scrolling: touch;
+        cursor: grab;
+    }
+    .mindmap-view-modal .jsmind-inner:active {
+        cursor: grabbing;
+    }
+    /* Garante que elementos SVG/Canvas recebam os eventos */
+    .mindmap-view-modal svg.jsmind,
+    .mindmap-view-modal canvas.jsmind,
+    .mindmap-view-modal jmnodes {
+        touch-action: none; /* Deixa a biblioteca jsMind controlar totalmente */
+    }
 }
 
 /* ==================================================================== */
@@ -8420,3 +8420,2867 @@ body {
 /* ====================================================== */
 /* ===== FIM: NOVAS REGRAS DE RESPONSIVIDADE ===== */
 /* ====================================================== */
+
+/* styles.css - ADICIONAR NO FINAL */
+
+/* --- Estilos para Quiz Aprimorado --- */
+
+/* Letras nas opções */
+.quiz-options li {
+    position: relative; /* Necessário para o posicionamento da letra */
+    padding-left: var(
+        --spacing-8
+    ); /* Aumenta o padding esquerdo para a letra */
+}
+
+.quiz-options li .option-letter {
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: var(--primary-color);
+    width: 20px; /* Largura fixa para alinhamento */
+}
+
+/* Estilos para estado respondido */
+.quiz-options.answered li {
+    cursor: default; /* Remove cursor de ponteiro */
+    pointer-events: none; /* Impede cliques */
+    opacity: 0.8; /* Levemente esmaecido */
+}
+.quiz-options.answered li:hover {
+    /* Remove efeitos de hover quando respondido */
+    border-color: var(--border-color);
+    background-color: var(--card-bg);
+    transform: none;
+}
+.quiz-options.answered li::before {
+    /* Remove indicador hover lateral */
+    transform: scaleY(0);
+}
+
+/* Destaque mais forte para correta/incorreta quando respondido */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.15); /* Fundo um pouco mais forte */
+}
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.15); /* Fundo um pouco mais forte */
+    /* Adiciona um X sutil */
+    /*
+    &::after {
+        content: '❌';
+        position: absolute;
+        right: var(--spacing-4);
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: var(--font-size-lg);
+    }
+    */
+}
+.quiz-options.answered li.correct.user-selected {
+    opacity: 1;
+    /* Adiciona um Check sutil (opcional) */
+    /*
+    &::after {
+        content: '✔️';
+        position: absolute;
+        right: var(--spacing-4);
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: var(--font-size-lg);
+        color: var(--success-color);
+    }
+    */
+}
+
+/* Esmaece as não selecionadas e não corretas */
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.6;
+}
+
+/* Feedback da resposta */
+.answer-feedback {
+    margin-top: var(--spacing-6);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+.answer-feedback.static {
+    /* Quando renderizado diretamente na página */
+    /* Estilos adicionais se necessário */
+}
+.answer-feedback.dynamic {
+    /* Quando adicionado após a resposta */
+    animation: fadeIn 0.3s ease-out; /* Animação suave */
+}
+.answer-feedback.skipped-feedback {
+    border-left: 4px solid var(--warning-color);
+    background-color: rgba(245, 158, 11, 0.05);
+}
+
+.answer-feedback p {
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+.answer-feedback p:last-child {
+    margin-bottom: 0;
+}
+
+.correct-feedback {
+    font-weight: bold;
+    color: var(--success-color);
+}
+
+.incorrect-feedback {
+    font-weight: bold;
+    color: var(--error-color);
+}
+
+/* Ajustes nos controles do Quiz */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between; /* Espaça os botões */
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Garante que os botões tenham largura automática, exceto em mobile */
+.quiz-controls .btn {
+    width: auto; /* Largura baseada no conteúdo */
+    flex-grow: 1; /* Permite crescer para ocupar espaço */
+    max-width: 200px; /* Limita largura máxima */
+}
+
+/* No estado respondido, o botão Próxima pode ocupar mais espaço */
+.quiz-controls #next-question {
+    margin-left: auto; /* Empurra para a direita */
+    max-width: 250px;
+}
+
+/* Responsividade dos controles */
+@media (max-width: 480px) {
+    .quiz-controls {
+        flex-direction: column-reverse; /* Empilha: Voltar, (Responder/Pular ou Próxima) */
+    }
+    .quiz-controls .btn {
+        width: 100%; /* Ocupa largura total em mobile */
+        max-width: none;
+    }
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}
+
+/* styles.css - ADICIONAR ou MODIFICAR estas regras */
+
+/* --- Estilos para Quiz Aprimorado --- */
+
+/* Letras nas opções */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-8); /* Padding base */
+    margin-bottom: var(--spacing-1);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base); /* Ajuste se necessário */
+    overflow: hidden; /* Para conter a explicação */
+}
+.quiz-options li:not(.answered):hover {
+    /* Efeito hover apenas se não respondido */
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px);
+}
+.quiz-options li.selected {
+    /* Seleção temporária antes de responder */
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Conteúdo da opção (letra + texto) */
+.option-content {
+    display: flex;
+    align-items: baseline; /* Alinha a base da letra com o texto */
+    gap: var(--spacing-3);
+}
+
+.option-letter {
+    font-weight: bold;
+    color: var(--primary-color);
+    /* width: 20px; Remover largura fixa */
+}
+
+.option-text {
+    flex: 1; /* Ocupa o espaço restante */
+    line-height: 1.5; /* Melhora leitura */
+}
+
+/* Estilos para estado respondido */
+.quiz-options.answered li {
+    cursor: default;
+    pointer-events: none; /* Impede cliques */
+    /* opacity: 0.9;  Remover opacidade geral, aplicar seletivamente */
+}
+.quiz-options.answered li:hover {
+    /* Remove hover no estado respondido */
+    transform: none;
+    background-color: var(--card-bg); /* Volta ao fundo normal */
+}
+
+/* Destaques de correto/incorreto */
+.quiz-options.answered li.correct {
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08); /* Fundo sutil */
+}
+.quiz-options.answered li.incorrect.user-selected {
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08); /* Fundo sutil */
+}
+/* Estilo para a opção selecionada pelo usuário (mesmo que incorreta) */
+.quiz-options.answered li.user-selected:not(.correct) {
+    /* Pode adicionar um estilo sutil, ex: uma borda interna */
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+/* Esmaecer opções não selecionadas e incorretas */
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color); /* Garante borda normal */
+    background-color: var(--bg-secondary); /* Fundo mais apagado */
+}
+
+/* --- Estilos para Explicações Individuais --- */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    border-top: 1px dashed var(--border-color); /* Separador sutil */
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    /* Animação de aparição */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+.option-explanation p {
+    margin: 0; /* Remove margem padrão do parágrafo */
+}
+
+/* Cores específicas para explicação correta/incorreta */
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+/* Mostra explicação quando a opção está no estado respondido */
+.quiz-options.answered .option-explanation {
+    max-height: 200px; /* Altura máxima que a explicação pode ter */
+    opacity: 1;
+}
+
+/* Feedback geral (removido da renderização dinâmica, ajustar estático) */
+.answer-feedback.static {
+    /* Se ainda usar para puladas */
+    margin-top: var(--spacing-6);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+.answer-feedback.skipped-feedback {
+    border-left: 4px solid var(--warning-color);
+    background-color: rgba(245, 158, 11, 0.05);
+}
+/* Remover .answer-feedback.dynamic se não for mais usado */
+/* .answer-feedback.dynamic { ... } */
+
+/* Ajustes nos controles do Quiz (mantidos) */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+
+/* Responsividade dos controles (mantida) */
+@media (max-width: 480px) {
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+    /* Ajuste no padding das opções em mobile */
+    .quiz-options li {
+        padding: var(--spacing-3) var(--spacing-4);
+    }
+    .option-content {
+        gap: var(--spacing-2);
+    }
+}
+
+/* styles.css - ADICIONAR ou MODIFICAR estas regras */
+
+/* --- Estilos para Modal de Resultados do Quiz --- */
+
+.quiz-results-modal .modal-content {
+    max-width: 650px; /* Largura um pouco maior */
+    text-align: center; /* Centraliza conteúdo */
+}
+
+.quiz-results-modal .modal-header {
+    /* Estilos existentes */
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    position: relative; /* Para o botão fechar */
+}
+.quiz-results-modal .modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-2xl); /* Título maior */
+}
+.quiz-results-modal .close-modal-btn {
+    position: absolute;
+    top: -10px; /* Ajuste fino */
+    right: -10px; /* Ajuste fino */
+}
+
+.result-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.result-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 160px; /* Tamanho do círculo */
+    height: 160px;
+    border-radius: 50%;
+    border: 8px solid var(--border-color); /* Borda base */
+    margin-bottom: var(--spacing-4);
+    background-color: var(--bg-secondary);
+    transition: border-color 0.5s ease;
+}
+
+.result-score .score-value {
+    font-size: var(--font-size-3xl); /* Tamanho do score (ex: 8/10) */
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.result-score .percentage-value {
+    font-size: var(--font-size-lg); /* Tamanho da porcentagem */
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Cores da borda baseadas na performance */
+.result-score.excellent {
+    border-color: var(--success-color);
+}
+.result-score.great {
+    border-color: var(--primary-light);
+}
+.result-score.good {
+    border-color: var(--warning-color);
+}
+.result-score.needs-improvement {
+    border-color: var(--error-color);
+}
+
+.result-performance {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--radius-md);
+}
+
+/* Cores do texto/fundo da performance */
+.result-performance.excellent {
+    color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.1);
+}
+.result-performance.great {
+    color: var(--primary-light);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+.result-performance.good {
+    color: var(--warning-color);
+    background-color: rgba(245, 158, 11, 0.1);
+}
+.result-performance.needs-improvement {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.result-details {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(150px, 1fr)
+    ); /* Layout responsivo */
+    gap: var(--spacing-4);
+    padding: var(--spacing-4) 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-6);
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.detail-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-1);
+}
+
+.detail-value {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.quiz-results-actions {
+    display: flex;
+    justify-content: center; /* Centraliza botões */
+    gap: var(--spacing-4);
+    flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: none; /* Remove borda dupla */
+}
+
+/* Garante que os botões tenham estilo consistente */
+.quiz-results-actions .btn {
+    /* Estilos gerais .btn já aplicados */
+}
+
+/* Adiciona classe para o modo de revisão */
+.quiz-question.review-mode h3 {
+    /* Estilo diferente para o título em modo revisão, se desejar */
+    /* Ex: color: var(--text-muted); */
+}
+.quiz-question.review-mode .quiz-options {
+    /* Estilos já aplicados pela classe .answered */
+}
+
+/* styles.css - ADICIONAR/MODIFICAR NO FINAL */
+
+/* --- Estilos Aprimorados para Configuração do Quiz --- */
+
+.quiz-start h3 {
+    /* Título principal da config */
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-2);
+}
+.quiz-start > p {
+    /* Parágrafo introdutório */
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-8);
+    font-size: var(--font-size-lg);
+}
+
+/* Card de Estatísticas no Topo */
+.quiz-stats-config {
+    margin-bottom: var(--spacing-6);
+}
+.quiz-stats-config h4 {
+    margin: 0 0 var(--spacing-4) 0;
+    padding-bottom: var(--spacing-3);
+    border-bottom: 1px solid var(--border-color);
+}
+.stats-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+.stats-controls label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.stats-controls .filter-select {
+    min-width: 180px; /* Largura mínima para o select */
+    flex-grow: 1; /* Permite crescer */
+    max-width: 300px; /* Limita largura */
+}
+#quiz-stats-display .stats-grid {
+    /* Ajusta o grid dentro do card */
+    gap: var(--spacing-3);
+}
+#quiz-stats-display .stat-item {
+    padding: var(--spacing-2);
+}
+
+/* Card de Revisão de Erradas */
+.review-wrong-section {
+    background-color: rgba(245, 158, 11, 0.05); /* Fundo sutil de warning */
+    border-left: 4px solid var(--warning-color);
+    margin-bottom: var(--spacing-6);
+}
+.review-wrong-section h4 {
+    color: var(--warning-color);
+    margin: 0 0 var(--spacing-2) 0;
+}
+.review-wrong-section p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-4);
+}
+.review-wrong-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    flex-wrap: wrap; /* Permite quebrar linha */
+}
+.review-wrong-controls label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+.review-wrong-controls .filter-select {
+    min-width: 180px;
+    flex-grow: 1;
+    max-width: 300px;
+}
+#start-review-wrong-btn {
+    margin-left: auto; /* Empurra o botão para a direita se houver espaço */
+    background-color: var(--warning-color); /* Estilo de warning */
+    border-color: var(--accent-dark);
+    color: var(--gray-900); /* Texto escuro para contraste */
+}
+#start-review-wrong-btn:hover {
+    background-color: var(--accent-dark);
+    color: white;
+}
+
+/* Card Principal de Configuração */
+.quiz-config-main {
+    margin-bottom: var(--spacing-6);
+}
+.quiz-config-main h4 {
+    margin: 0 0 var(--spacing-4) 0;
+    padding-bottom: var(--spacing-3);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.quiz-config {
+    /* Container dos 3 cards de config */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-5);
+    margin-bottom: var(--spacing-6);
+}
+
+.config-section {
+    /* Cada card de config (Básicas, Conteúdo, Avançadas) */
+    background-color: var(--bg-secondary); /* Fundo um pouco diferente */
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-5);
+}
+.config-section h5 {
+    /* Título de cada card de config */
+    color: var(--primary-color);
+    margin: 0 0 var(--spacing-4) 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+.config-section .form-group {
+    /* Cada linha Label + Input/Select/Checkbox */
+    display: flex;
+    flex-direction: column; /* Label acima do controle */
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-4);
+}
+.config-section .form-group:last-child {
+    margin-bottom: 0;
+}
+.config-section .form-group label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    margin-bottom: 0; /* Remove margem extra */
+}
+.config-section .form-control {
+    /* Input e Select */
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+}
+.config-section .config-checkbox {
+    /* Container do Checkbox */
+    width: 100%;
+    display: flex;
+    flex-direction: row; /* Checkbox ao lado do label */
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-3);
+}
+.config-section .config-checkbox input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    margin: 0;
+    flex-shrink: 0;
+}
+.config-section .config-checkbox .label-text {
+    /* O texto do label do checkbox */
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Card de Seleção de Artigos */
+.articles-selection-container {
+    margin-bottom: var(--spacing-6);
+}
+.articles-selection-container h5 {
+    color: var(--primary-color);
+    margin: 0 0 var(--spacing-2) 0;
+}
+.articles-selection-container > p {
+    /* Parágrafo explicativo */
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-4);
+}
+.articles-filter {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    align-items: center;
+    flex-wrap: wrap; /* Quebra linha em telas menores */
+}
+.articles-filter input[type='text'] {
+    flex-grow: 1; /* Ocupa espaço */
+    min-width: 200px;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+}
+.articles-actions {
+    display: flex;
+    gap: var(--spacing-2);
+}
+.articles-actions .btn-small {
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+}
+
+/* Accordion da lista de artigos */
+.articles-list-accordion {
+    max-height: 400px; /* Limita altura */
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2); /* Padding externo */
+    background-color: var(--bg-secondary);
+}
+.article-source-group {
+    /* Cada <details> */
+    margin-bottom: var(--spacing-2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--card-bg);
+    overflow: hidden;
+}
+.article-source-group summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-3);
+    cursor: pointer;
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+}
+.article-source-group summary::after {
+    /* Seta */
+    content: '▼';
+    transition: transform var(--transition-fast);
+}
+.article-source-group[open] summary::after {
+    transform: rotate(180deg);
+}
+.articles-checkbox-list {
+    padding: var(--spacing-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+.article-checkbox-item label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    padding: var(--spacing-2);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+.article-checkbox-item label:hover {
+    background-color: var(--bg-secondary);
+}
+.article-checkbox-item input[type='checkbox'] {
+    margin-top: 5px; /* Alinha com o texto */
+    flex-shrink: 0;
+}
+.article-checkbox-item .checkmark {
+    /* Estilo customizado (opcional) */
+}
+.article-checkbox-item .article-info {
+    flex-grow: 1;
+}
+.article-checkbox-item .article-reference {
+    font-weight: 600;
+    color: var(--primary-color);
+    display: block;
+}
+.article-checkbox-item .article-subject {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: var(--spacing-1) 0;
+}
+.article-checkbox-item .article-stats {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-style: italic;
+}
+.selected-articles-summary {
+    text-align: right;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-3);
+}
+
+/* Botões Principais de Ação */
+.quiz-actions.main-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-8); /* Mais espaço acima */
+    flex-wrap: wrap;
+}
+.quiz-actions.main-actions .btn {
+    flex-grow: 1; /* Tenta ocupar espaço igual */
+    min-width: 200px; /* Largura mínima */
+    padding: var(--spacing-4) var(--spacing-6); /* Botões maiores */
+    font-size: var(--font-size-base);
+}
+#start-quiz-btn {
+    /* Botão principal */
+}
+#quick-quiz-btn {
+    /* Botão secundário */
+}
+#use-question-bank {
+    /* Botão secundário */
+}
+
+/* Seção de Histórico */
+.quiz-history-section {
+    margin-top: var(--spacing-8);
+}
+.quiz-history-section h4 {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-3);
+    border-bottom: 1px solid var(--border-color);
+}
+.history-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-4);
+    font-size: var(--font-size-sm);
+}
+.history-controls label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.history-controls .filter-select {
+    min-width: 180px;
+}
+
+#quiz-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+.quiz-history-item {
+    /* Agora é um card */
+    padding: var(--spacing-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-secondary);
+}
+.history-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Quebra linha se necessário */
+    gap: var(--spacing-3) var(--spacing-5); /* Espaço vertical e horizontal */
+    margin-bottom: var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+.history-date {
+    font-weight: 500;
+}
+.history-score {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+.history-difficulty {
+}
+.history-time {
+}
+.history-details {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-3);
+    padding-top: var(--spacing-2);
+    border-top: 1px dashed var(--border-color);
+}
+.history-details strong {
+    color: var(--text-secondary);
+}
+.history-actions {
+    display: flex;
+    gap: var(--spacing-3);
+    justify-content: flex-end;
+}
+.history-actions .btn-small {
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    background-color: rgba(0, 0, 0, 0.7); /* Fundo semi-transparente */
+    backdrop-filter: blur(4px);
+}
+.loading-content {
+    background-color: var(--card-bg);
+    padding: var(--spacing-8);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+}
+.spinner {
+    border: 4px solid var(--bg-tertiary);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-4) auto;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.loading-content p {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Ajustes Responsivos Adicionais para Quiz Config */
+@media (max-width: 768px) {
+    .quiz-config {
+        grid-template-columns: 1fr; /* Força 1 coluna */
+    }
+    .articles-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .articles-actions {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .quiz-actions.main-actions {
+        flex-direction: column;
+    }
+    .quiz-actions.main-actions .btn {
+        width: 100%;
+        min-width: unset;
+    }
+    .history-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-2);
+    }
+    .history-actions {
+        justify-content: flex-start;
+    }
+    .review-wrong-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #start-review-wrong-btn {
+        margin-left: 0;
+        margin-top: var(--spacing-3);
+    }
+}
+
+/* styles.css - ADICIONAR ou MODIFICAR estas regras */
+
+/* Ajusta o padding da opção para dar espaço ao botão */
+.quiz-options li {
+    padding-right: var(
+        --spacing-12
+    ); /* Adiciona espaço à direita para o botão */
+}
+
+/* Conteúdo da opção (letra + texto) */
+.option-content {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-3);
+    /* Garante que o conteúdo não se sobreponha ao botão */
+    position: relative;
+    z-index: 1; /* Conteúdo fica acima do botão posicionado absolutamente */
+}
+
+/* Botão de Descartar (Tesoura) */
+.discard-option-btn {
+    position: absolute; /* Posiciona relativamente ao LI */
+    right: var(--spacing-3); /* Alinha à direita */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2; /* Fica acima do conteúdo da opção */
+    padding: var(--spacing-1); /* Padding menor */
+    font-size: var(--font-size-lg); /* Tamanho do ícone */
+    color: var(--text-muted);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast),
+        background-color var(--transition-fast);
+    /* Ajustes finos de tamanho se usar btn-icon */
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(
+        239,
+        68,
+        68,
+        0.1
+    ); /* Fundo vermelho sutil no hover */
+}
+
+/* Estilo para a opção descartada */
+li.option-discarded {
+    opacity: 0.6; /* Esmaece a opção */
+    background-color: var(--bg-secondary); /* Fundo sutil */
+    border-color: var(--border-color); /* Borda normal */
+}
+
+li.option-discarded .option-text {
+    text-decoration: line-through; /* Aplica o risco */
+    text-decoration-color: var(--error-color); /* Cor do risco (opcional) */
+    text-decoration-thickness: 2px; /* Espessura do risco (opcional) */
+}
+
+/* Remove o efeito hover visual do LI quando descartado */
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+li.option-discarded::before {
+    transform: scaleY(0); /* Remove indicador lateral */
+}
+
+/* Garante que o botão não apareça quando a questão está respondida */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* Garante que o padding direito volte ao normal quando respondido */
+.quiz-options.answered li {
+    padding-right: var(--spacing-8); /* Padding original */
+}
+
+/* Ajuste fino para mobile, se necessário */
+@media (max-width: 480px) {
+    .discard-option-btn {
+        right: var(--spacing-2);
+        width: 30px;
+        height: 30px;
+        font-size: var(--font-size-base);
+    }
+    .quiz-options li {
+        padding-right: var(--spacing-10); /* Espaço um pouco menor em mobile */
+    }
+    .quiz-options.answered li {
+        padding-right: var(--spacing-4); /* Padding original mobile */
+    }
+}
+
+/* styles.css - SUBSTITUA as regras anteriores para o quiz */
+
+/* Opção LI: Posição relativa e padding esquerdo aumentado */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-5) var(--spacing-4)
+        var(--spacing-12); /* Aumenta padding ESQUERDO */
+    /* Outros estilos do li mantidos */
+    margin-bottom: var(--spacing-3);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: hidden;
+}
+
+/* Efeitos hover/selected mantidos */
+.quiz-options li:not(.answered):hover {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px);
+}
+.quiz-options li.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONADO À ESQUERDA */
+.discard-option-btn {
+    position: absolute;
+    left: var(--spacing-3); /* Distância da borda esquerda */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2; /* Acima do conteúdo */
+    /* Estilos do btn-icon mantidos ou ajustados */
+    padding: var(--spacing-1);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast),
+        background-color var(--transition-fast);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Conteúdo da opção (letra + texto) - SEM MUDANÇAS */
+.option-content {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-3);
+}
+
+/* Letra da Opção - SEM MUDANÇAS, posição agora definida pelo flex */
+.option-letter {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Texto da Opção - SEM MUDANÇAS */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+}
+
+/* Estilo para a opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+/* Aplica risco SOMENTE ao conteúdo, não ao botão */
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+/* Remove hover visual do LI quando descartado */
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+/* Remove indicador lateral ao passar mouse (se existir) */
+li.option-discarded::before {
+    transform: scaleY(0);
+}
+
+/* --- ESTILOS DO ESTADO RESPONDIDO --- */
+
+/* Oculta botão descartar */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* Volta padding esquerdo ao normal quando respondido */
+.quiz-options.answered li {
+    padding-left: var(--spacing-8); /* Padding esquerdo original */
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Posiciona a letra corretamente no estado respondido */
+.quiz-options.answered li .option-letter {
+    /* Precisa ser posicionado absolutamente aqui, pois o padding mudou */
+    position: absolute;
+    left: var(--spacing-4); /* Posição original da letra */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Remove hover no estado respondido (mantido) */
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos correct/incorrect (mantidos) */
+.quiz-options.answered li.correct {
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+    opacity: 1;
+}
+.quiz-options.answered li.incorrect.user-selected {
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+    opacity: 1;
+}
+.quiz-options.answered li.user-selected:not(.correct) {
+    box-shadow: inset 0 0 0 2px var(--border-color);
+    opacity: 1;
+}
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações (mantidas) */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+.quiz-options.answered .option-explanation {
+    max-height: 200px;
+    opacity: 1;
+}
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles (mantidos) */
+.quiz-controls {
+    /* ... estilos mantidos ... */
+}
+.quiz-controls .btn {
+    /* ... estilos mantidos ... */
+}
+.quiz-controls #next-question {
+    /* ... estilos mantidos ... */
+}
+@media (max-width: 480px) {
+    /* ... estilos mantidos ... */
+}
+
+/* Ajuste fino para mobile, se necessário */
+@media (max-width: 480px) {
+    .quiz-options li {
+        padding-left: var(--spacing-10); /* Padding esquerdo menor em mobile */
+    }
+    .discard-option-btn {
+        left: var(--spacing-2);
+        width: 30px;
+        height: 30px;
+        font-size: var(--font-size-base);
+    }
+    .quiz-options.answered li {
+        padding-left: var(--spacing-4); /* Padding esquerdo original mobile */
+    }
+    .quiz-options.answered li .option-letter {
+        left: var(--spacing-3);
+    }
+}
+
+/* styles.css - SUBSTITUA as regras anteriores para as opções do quiz */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: 0; /* Remover padding padrão da lista */
+    margin-bottom: var(--spacing-8);
+}
+
+/* Opção LI: Posição relativa e Margem Esquerda para dar espaço ao botão */
+.quiz-options li {
+    position: relative;
+    margin-left: 45px; /* CRIA ESPAÇO À ESQUERDA PARA O BOTÃO SAIR */
+    padding: var(--spacing-3) var(--spacing-12); /* Padding interno normal */
+    margin-bottom: var(--spacing-5);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible; /* PERMITE que o botão absoluto "vaze" para a esquerda */
+}
+
+/* Efeitos hover/selected (mantidos) */
+.quiz-options li:not(.answered):hover {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px); /* Mantém efeito sutil */
+}
+.quiz-options li.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONADO ABSOLUTAMENTE À ESQUERDA, FORA DO LI */
+.discard-option-btn {
+    position: absolute;
+    left: -40px; /* PUXA O BOTÃO PARA FORA DO LI (-32px largura + 8px espaço) */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    /* Estilos do btn-icon */
+    padding: var(--spacing-1);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: transparent; /* Fundo transparente por padrão */
+    border: 1px solid transparent; /* Borda transparente por padrão */
+    cursor: pointer;
+    border-radius: 50%; /* Torna circular */
+    transition: all var(--transition-fast);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3); /* Borda sutil no hover */
+}
+
+/* Conteúdo da opção (letra + texto) - SEM padding-left extra */
+.option-content {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-3);
+}
+
+/* Letra da Opção - SEM MUDANÇAS, posição definida pelo flex */
+.option-letter {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Texto da Opção - SEM MUDANÇAS */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+}
+
+/* Estilo para a opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+li.option-discarded:hover {
+    /* Remove hover visual do LI */
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+/* Altera a aparência do botão quando a opção está descartada */
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTILOS DO ESTADO RESPONDIDO --- */
+
+/* Oculta botão descartar */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* Volta margem esquerda ao normal quando respondido */
+.quiz-options.answered li {
+    margin-left: 0; /* Remove a margem esquerda */
+    padding-left: var(--spacing-8); /* Adiciona padding interno para a letra */
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden; /* Volta a esconder overflow */
+}
+
+/* Posiciona a letra corretamente no estado respondido (absoluto) */
+.quiz-options.answered li .option-letter {
+    position: absolute;
+    left: var(--spacing-4);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Remove hover no estado respondido (mantido) */
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos correct/incorrect (mantidos) */
+.quiz-options.answered li.correct {
+    /* ... */
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+.quiz-options.answered li.incorrect.user-selected {
+    /* ... */
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+.quiz-options.answered li.user-selected:not(.correct) {
+    /* ... */
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações (mantidas) */
+.option-explanation {
+    /* ... estilos mantidos ... */
+}
+.quiz-options.answered .option-explanation {
+    /* ... estilos mantidos ... */
+}
+.explanation-correct p {
+    /* ... */
+}
+.explanation-incorrect p {
+    /* ... */
+}
+.option-explanation p {
+    /* ... */
+}
+
+/* Controles (mantidos) */
+.quiz-controls {
+    /* ... estilos mantidos ... */
+}
+.quiz-controls .btn {
+    /* ... estilos mantidos ... */
+}
+.quiz-controls #next-question {
+    /* ... estilos mantidos ... */
+}
+@media (max-width: 480px) {
+    /* ... estilos mantidos ... */
+}
+
+/* Ajuste fino para mobile, se necessário */
+@media (max-width: 480px) {
+    .quiz-options li {
+        margin-left: 35px; /* Margem menor em mobile */
+        padding: var(--spacing-3) var(--spacing-4); /* Padding interno menor */
+    }
+    .discard-option-btn {
+        left: -32px; /* Ajusta posição */
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-base);
+    }
+    .quiz-options.answered li {
+        margin-left: 0;
+        padding-left: var(
+            --spacing-6
+        ); /* Padding menor para letra no estado respondido */
+    }
+    .quiz-options.answered li .option-letter {
+        left: var(--spacing-3);
+    }
+}
+
+/* styles.css - SUBSTITUA as regras anteriores para as opções do quiz */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: -10px; /* Remove padding padrão da lista */
+    margin-bottom: var(--spacing-8);
+    /* Adiciona um padding-left na UL para dar espaço aos botões de descarte */
+    padding-left: -100px; /* Espaço à esquerda para os botões ✂️ */
+}
+
+/* Opção LI: Posição relativa e padding interno */
+.quiz-options li {
+    position: relative;
+    /* margin-left: 45px;  <-- REMOVIDO */
+    padding: var(--spacing-4) var(--spacing-5); /* Padding interno normal (T/B, R/L) */
+    /* O padding-left real para o texto será controlado pelo .option-content */
+    padding-left: var(--spacing-12); /* Padding interno esquerdo para a letra */
+    margin-bottom: var(--spacing-3);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible; /* PERMITE que o botão absoluto "vaze" para a esquerda */
+}
+
+/* Efeitos hover/selected (mantidos) */
+.quiz-options li:not(.answered):hover {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px);
+}
+.quiz-options li.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONADO ABSOLUTAMENTE À ESQUERDA, FORA DO LI */
+.discard-option-btn {
+    position: absolute;
+    left: -40px; /* PUXA O BOTÃO PARA FORA DO LI (para dentro do padding da UL) */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    /* Estilos do btn-icon */
+    padding: var(--spacing-1);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: var(--bg-primary); /* Cor de fundo para sobrepor linhas */
+    border: 1px solid var(--border-color); /* Borda sutil */
+    cursor: pointer;
+    border-radius: 50%; /* Torna circular */
+    transition: all var(--transition-fast);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-50%) scale(1.05); /* Efeito hover */
+}
+
+/* Conteúdo da opção (letra + texto) */
+.option-content {
+    display: flex;
+    align-items: baseline;
+    /* gap: var(--spacing-3); <-- REMOVIDO */
+}
+
+/* Letra da Opção - CORREÇÃO AQUI */
+.option-letter {
+    font-weight: bold;
+    color: var(--primary-color);
+    /* Adiciona margem à direita para separar do texto */
+    margin-right: var(--spacing-3); /* (0.75rem) */
+    /* Garante que não encolha */
+    flex-shrink: 0;
+}
+
+/* Texto da Opção (mantido) */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+}
+
+/* Estilo para a opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+/* Aplica risco SOMENTE ao conteúdo, não ao botão */
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+/* Remove hover visual do LI quando descartado */
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+/* Altera a aparência do botão quando a opção está descartada */
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTILOS DO ESTADO RESPONDIDO --- */
+
+/* Oculta botão descartar */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* Remove o padding da UL no estado respondido */
+.quiz-options.answered {
+    padding-left: 0;
+}
+
+/* Ajusta padding/margem do LI respondido */
+.quiz-options.answered li {
+    margin-left: 0; /* Remove a margem esquerda */
+    padding-left: var(--spacing-8); /* Adiciona padding interno para a letra */
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden; /* Volta a esconder overflow */
+}
+
+/* Posiciona a letra corretamente no estado respondido (absoluto) */
+.quiz-options.answered li .option-letter {
+    position: absolute;
+    left: var(--spacing-4);
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 0; /* Remove a margem, pois o pos. é absoluto */
+}
+
+/* Remove hover no estado respondido (mantido) */
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos correct/incorrect (mantidos) */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+.quiz-options.answered li.user-selected:not(.correct) {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações (mantidas) */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+.quiz-options.answered .option-explanation {
+    max-height: 200px;
+    opacity: 1;
+}
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles (mantidos) */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+@media (max-width: 480px) {
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}
+
+/* Ajuste fino para mobile, se necessário */
+@media (max-width: 480px) {
+    .quiz-options {
+        padding-left: 35px; /* Padding menor na UL em mobile */
+    }
+    .quiz-options li {
+        padding-left: var(--spacing-6); /* Padding interno menor */
+    }
+    .discard-option-btn {
+        left: -32px; /* Ajusta posição */
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-base);
+    }
+    .quiz-options.answered {
+        padding-left: 0; /* Remove padding da UL */
+    }
+    .quiz-options.answered li {
+        margin-left: 0;
+        padding-left: var(
+            --spacing-6
+        ); /* Padding menor para letra no estado respondido */
+    }
+    .quiz-options.answered li .option-letter {
+        left: var(--spacing-3);
+    }
+}
+
+/* styles.css - VERSÃO APRIMORADA para tesoura e letras */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-8);
+    /* Ajuste do padding para acomodar a tesoura */
+    padding-left: 52px; /* Aumentado para dar mais espaço */
+    position: relative;
+}
+
+/* Opção LI */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-5);
+    padding-left: var(
+        --spacing-10
+    ); /* Aumentado para dar mais espaço à letra */
+    margin-bottom: var(--spacing-3);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible;
+    min-height: 52px; /* Altura mínima para melhor alinhamento */
+    display: flex;
+    align-items: center;
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONAMENTO OTIMIZADO */
+.discard-option-btn {
+    position: absolute;
+    left: -46px; /* Posicionado mais precisamente */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10; /* Garante que fique acima de outros elementos */
+    padding: var(--spacing-2);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-50%) scale(1.05);
+}
+
+/* Conteúdo da opção - LAYOUT CORRIGIDO */
+.option-content {
+    display: flex;
+    align-items: flex-start; /* Alinhamento no topo para múltiplas linhas */
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+/* Letra da Opção - ESTILO CONSISTENTE */
+.option-letter {
+    font-weight: 700; /* Mais negrito para melhor visibilidade */
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px; /* Largura fixa para alinhamento consistente */
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px; /* Ajuste fino de alinhamento vertical */
+}
+
+/* Texto da Opção */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+    padding-right: var(--spacing-2);
+}
+
+/* Opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTADO RESPONDIDO - AJUSTES DE POSICIONAMENTO --- */
+
+/* Remove botão descartar e padding extra */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+.quiz-options.answered {
+    padding-left: 0;
+}
+
+/* Ajuste do LI no estado respondido */
+.quiz-options.answered li {
+    margin-left: 0;
+    padding-left: var(--spacing-10); /* Mesmo padding do estado normal */
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Letra no estado respondido - POSIÇÃO CORRIGIDA */
+.quiz-options.answered li .option-letter {
+    position: static; /* Remove posicionamento absoluto */
+    transform: none;
+    margin-right: var(--spacing-3);
+    /* Mantém os mesmos estilos do estado normal */
+}
+
+/* Remove estilos de hover no estado respondido */
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos para respostas corretas/incorretas */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.quiz-options.answered li.user-selected:not(.correct) {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.quiz-options.answered .option-explanation {
+    max-height: 200px;
+    opacity: 1;
+}
+
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .quiz-options {
+        padding-left: 44px; /* Reduzido para mobile */
+    }
+
+    .quiz-options li {
+        padding-left: var(--spacing-8);
+        min-height: 48px; /* Altura menor para mobile */
+    }
+
+    .discard-option-btn {
+        left: -38px;
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-base);
+    }
+
+    .option-letter {
+        font-size: var(--font-size-base);
+        min-width: 20px;
+    }
+
+    .quiz-options.answered {
+        padding-left: 0;
+    }
+
+    .quiz-options.answered li {
+        padding-left: var(--spacing-8);
+    }
+
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}
+
+/* styles.css - VERSÃO APRIMORADA para tesoura e letras (CORRIGIDA) */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-8);
+    /* Ajuste do padding para acomodar a tesoura */
+    padding-left: 52px; /* Aumentado para dar mais espaço */
+    position: relative;
+}
+
+/* Opção LI */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-5);
+    padding-left: var(
+        --spacing-10
+    ); /* Aumentado para dar mais espaço à letra */
+    margin-bottom: var(--spacing-3);
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible;
+    min-height: 52px; /* Altura mínima para melhor alinhamento */
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONAMENTO OTIMIZADO */
+.discard-option-btn {
+    position: absolute;
+    left: -46px; /* Posicionado mais precisamente */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10; /* Garante que fique acima de outros elementos */
+    padding: var(--spacing-2);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-50%) scale(1.05);
+}
+
+/* Conteúdo da opção - LAYOUT CORRIGIDO */
+.option-content {
+    display: flex;
+    align-items: flex-start; /* Alinhamento no topo para múltiplas linhas */
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+/* Letra da Opção - ESTILO CONSISTENTE */
+.option-letter {
+    font-weight: 700; /* Mais negrito para melhor visibilidade */
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px; /* Largura fixa para alinhamento consistente */
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px; /* Ajuste fino de alinhamento vertical */
+}
+
+/* Texto da Opção */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+    padding-right: var(--spacing-2);
+}
+
+/* Opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTADO RESPONDIDO - AJUSTES DE POSICIONAMENTO --- */
+
+/* Remove botão descartar e padding extra */
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+.quiz-options.answered {
+    padding-left: 0;
+}
+
+/* Ajuste do LI no estado respondido */
+.quiz-options.answered li {
+    margin-left: 0;
+    padding-left: var(--spacing-10); /* Mesmo padding do estado normal */
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden;
+    /* Adiciona display: block para garantir que o .option-explanation fique abaixo */
+    display: block;
+}
+
+/* Letra no estado respondido - POSIÇÃO CORRIGIDA */
+.quiz-options.answered li .option-letter {
+    position: static; /* Remove posicionamento absoluto */
+    transform: none;
+    /* Mantém os mesmos estilos do estado normal */
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    margin-right: 0; /* Reseta margem se houver */
+}
+
+/* Garante que o .option-content no estado respondido ainda seja flex */
+.quiz-options.answered li .option-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+/* Remove estilos de hover no estado respondido */
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos para respostas corretas/incorretas */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.quiz-options.answered li.user-selected:not(.correct) {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    /* Adiciona padding lateral para alinhar com o texto */
+    padding-left: calc(
+        var(--spacing-10) - var(--spacing-5)
+    ); /* Alinha com .option-text */
+    padding-right: var(--spacing-5);
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.quiz-options.answered .option-explanation {
+    max-height: 200px;
+    opacity: 1;
+}
+
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .quiz-options {
+        padding-left: 44px; /* Reduzido para mobile */
+    }
+
+    .quiz-options li {
+        padding-left: var(--spacing-8);
+        min-height: 48px; /* Altura menor para mobile */
+    }
+
+    .discard-option-btn {
+        left: -38px;
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-base);
+    }
+
+    .option-letter {
+        font-size: var(--font-size-base);
+        min-width: 20px;
+    }
+
+    .quiz-options.answered {
+        padding-left: 0;
+    }
+
+    .quiz-options.answered li {
+        padding-left: var(--spacing-8);
+    }
+
+    /* CORREÇÃO: Alinha a explicação em mobile */
+    .option-explanation {
+        padding-left: calc(var(--spacing-8) - var(--spacing-4));
+        padding-right: var(--spacing-4);
+    }
+
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}
+
+/* styles.css - VERSÃO CORRIGIDA para tesoura não empurrar alternativas */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-8);
+    position: relative;
+    /* REMOVIDO padding-left da UL - agora controlado individualmente */
+}
+
+/* Opção LI */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-5);
+    padding-left: var(--spacing-10);
+    margin-bottom: var(--spacing-3);
+    margin-left: 45px; /* ESPAÇO RESERVADO para a tesoura */
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONAMENTO CORRIGIDO */
+.discard-option-btn {
+    position: absolute;
+    left: -45px; /* Posicionado exatamente na margem */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    padding: var(--spacing-2);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-50%) scale(1.05);
+}
+
+/* Conteúdo da opção */
+.option-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+/* Letra da Opção */
+.option-letter {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Texto da Opção */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+    padding-right: var(--spacing-2);
+}
+
+/* Opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTADO RESPONDIDO - SEM TESOURA --- */
+
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* NO ESTADO RESPONDIDO: remove a margem esquerda já que não tem tesoura */
+.quiz-options.answered li {
+    margin-left: 0;
+    padding-left: var(--spacing-10);
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+}
+
+.quiz-options.answered li .option-letter {
+    position: static;
+    transform: none;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    margin-right: var(--spacing-3);
+}
+
+.quiz-options.answered li .option-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos para respostas corretas/incorretas */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.quiz-options.answered li.user-selected:not(.correct) {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Explicações */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    padding-left: calc(var(--spacing-10) - var(--spacing-5));
+    padding-right: var(--spacing-5);
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.quiz-options.answered .option-explanation {
+    max-height: 200px;
+    opacity: 1;
+}
+
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .quiz-options li {
+        margin-left: 40px; /* Margem menor em mobile */
+        padding-left: var(--spacing-8);
+        min-height: 48px;
+    }
+
+    .discard-option-btn {
+        left: -40px; /* Ajuste para mobile */
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-base);
+    }
+
+    .option-letter {
+        font-size: var(--font-size-base);
+        min-width: 20px;
+    }
+
+    .quiz-options.answered li {
+        margin-left: 0;
+        padding-left: var(--spacing-8);
+    }
+
+    .option-explanation {
+        padding-left: calc(var(--spacing-8) - var(--spacing-4));
+        padding-right: var(--spacing-4);
+    }
+
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}
+
+/* styles.css - VERSÃO CORRIGIDA para comentário abaixo da alternativa */
+
+/* Lista de Opções */
+.quiz-options {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-8);
+    position: relative;
+}
+
+/* Opção LI */
+.quiz-options li {
+    position: relative;
+    padding: var(--spacing-4) var(--spacing-5);
+    padding-left: var(--spacing-10);
+    margin-bottom: var(--spacing-3);
+    margin-left: 45px; /* ESPAÇO RESERVADO para a tesoura */
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+    overflow: visible;
+    min-height: 52px;
+    /* REMOVIDO display: flex e align-items: center */
+}
+
+/* Botão de Descartar (Tesoura) - POSICIONAMENTO CORRIGIDO */
+.discard-option-btn {
+    position: absolute;
+    left: -45px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    padding: var(--spacing-2);
+    font-size: var(--font-size-lg);
+    color: var(--text-muted);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.discard-option-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-50%) scale(1.05);
+}
+
+/* Conteúdo da opção */
+.option-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    width: 100%;
+}
+
+/* Letra da Opção */
+.option-letter {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Texto da Opção */
+.option-text {
+    flex: 1;
+    line-height: 1.5;
+    padding-right: var(--spacing-2);
+}
+
+/* Opção descartada */
+li.option-discarded {
+    opacity: 0.6;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .option-content {
+    text-decoration: line-through;
+    text-decoration-color: var(--error-color);
+    text-decoration-thickness: 2px;
+}
+
+li.option-discarded:hover {
+    transform: none;
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+li.option-discarded .discard-option-btn {
+    color: var(--error-color);
+    border-color: rgba(239, 68, 68, 0.3);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* --- ESTADO RESPONDIDO - SEM TESOURA --- */
+
+.quiz-options.answered .discard-option-btn {
+    display: none;
+}
+
+/* NO ESTADO RESPONDIDO: remove a margem esquerda já que não tem tesoura */
+.quiz-options.answered li {
+    margin-left: 0;
+    padding-left: var(--spacing-10);
+    cursor: default;
+    pointer-events: none;
+    overflow: hidden;
+    /* REMOVIDO display: flex - AGORA É display: block para explicação ficar abaixo */
+    display: block;
+    min-height: auto; /* Altura automática para acomodar explicação */
+    padding-bottom: var(--spacing-3); /* Espaço extra para explicação */
+}
+
+.quiz-options.answered li .option-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    width: 100%;
+    margin-bottom: 0; /* Garante que não tenha margem abaixo */
+}
+
+.quiz-options.answered li .option-letter {
+    position: static;
+    transform: none;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    margin-right: var(--spacing-3);
+}
+
+.quiz-options.answered li:hover {
+    transform: none;
+    background-color: var(--card-bg);
+}
+
+/* Estilos para respostas corretas/incorretas */
+.quiz-options.answered li.correct {
+    opacity: 1;
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+.quiz-options.answered li.incorrect.user-selected {
+    opacity: 1;
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.quiz-options.answered li.user-selected:not(.correct) {
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px var(--border-color);
+}
+
+.quiz-options.answered li:not(.correct):not(.user-selected) {
+    opacity: 0.7;
+    border-color: var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+/* EXPLICAÇÕES - CORRIGIDO PARA FICAR ABAIXO */
+.option-explanation {
+    margin-top: var(--spacing-3);
+    padding-top: var(--spacing-3);
+    padding-left: 0; /* Remove padding lateral */
+    padding-right: 0;
+    border-top: 1px dashed var(--border-color);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+    width: 100%; /* Ocupa toda a largura */
+    display: block; /* Garante que fique em bloco */
+}
+
+.quiz-options.answered .option-explanation {
+    max-height: 500px; /* Aumentado para acomodar mais conteúdo */
+    opacity: 1;
+}
+
+.explanation-correct p {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.explanation-incorrect p {
+    color: var(--error-color);
+}
+
+.option-explanation p {
+    margin: 0;
+}
+
+/* Controles */
+.quiz-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border-color);
+}
+
+.quiz-controls .btn {
+    width: auto;
+    flex-grow: 1;
+    max-width: 200px;
+}
+
+.quiz-controls #next-question {
+    margin-left: auto;
+    max-width: 250px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .quiz-options li {
+        margin-left: 40px;
+        padding-left: var(--spacing-8);
+        min-height: 48px;
+    }
+
+    .discard-option-btn {
+        left: -40px;
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-base);
+    }
+
+    .option-letter {
+        font-size: var(--font-size-base);
+        min-width: 20px;
+    }
+
+    .quiz-options.answered li {
+        margin-left: 0;
+        padding-left: var(--spacing-8);
+    }
+
+    .option-explanation {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .quiz-controls {
+        flex-direction: column-reverse;
+    }
+
+    .quiz-controls .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    .quiz-controls #next-question {
+        margin-left: 0;
+    }
+}

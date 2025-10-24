@@ -6118,10 +6118,55 @@ class QuizManager {
             'lexia_question_bank',
             JSON.stringify(this.questionBank)
         );
+        // Salvar também a lista de questões erradas
+        localStorage.setItem(
+            'lexia_wrong_questions',
+            JSON.stringify(this.getWrongQuestionsList())
+        );
         console.log('Dados do quiz salvos:', {
             history: this.quizHistory.length,
             questionBank: this.questionBank.length,
+            wrongQuestions: this.getWrongQuestionsList().length,
         });
+    }
+
+    // ===== NOVO: Armazenamento persistente para questões erradas =====
+    // (Poderia ser um array de IDs ou objetos de questão completos)
+    _wrongQuestions =
+        JSON.parse(localStorage.getItem('lexia_wrong_questions')) || [];
+
+    addWrongQuestion(questionObject) {
+        // Evita duplicatas
+        if (!this._wrongQuestions.some((q) => q.id === questionObject.id)) {
+            this._wrongQuestions.push(questionObject);
+            this.saveQuizData(); // Salva a lista atualizada
+            console.log(
+                `[Wrong Q] Adicionada: ${questionObject.id}. Total: ${this._wrongQuestions.length}`
+            );
+        }
+    }
+
+    removeWrongQuestion(questionId) {
+        const initialLength = this._wrongQuestions.length;
+        this._wrongQuestions = this._wrongQuestions.filter(
+            (q) => q.id !== questionId
+        );
+        if (this._wrongQuestions.length < initialLength) {
+            this.saveQuizData(); // Salva a lista atualizada
+            console.log(
+                `[Wrong Q] Removida: ${questionId}. Restantes: ${this._wrongQuestions.length}`
+            );
+        }
+    }
+
+    getWrongQuestionsList(sourceFilter = 'all') {
+        if (sourceFilter === 'all') {
+            return [...this._wrongQuestions]; // Retorna cópia
+        } else {
+            return this._wrongQuestions.filter(
+                (q) => q.sourceFile === sourceFilter
+            );
+        }
     }
 
     startQuizFromBank() {
@@ -6157,61 +6202,157 @@ class QuizManager {
         return this.currentQuiz;
     }
 
+    // app.js - Dentro da classe QuizManager
     async generateQuiz(config) {
-        if (lexiaChunks.length === 0) {
+        if (
+            lexiaChunks.length === 0 &&
+            (!config.selectedArticles || config.selectedArticles.length === 0)
+        ) {
             alert(
-                'Nenhum conteúdo disponível para gerar quiz. Carregue os PDFs primeiro.'
+                'Nenhum conteúdo (PDFs processados ou artigos selecionados) disponível para gerar quiz.'
             );
             return null;
         }
 
-        // Check if using specific articles
+        // --- Caminho 1: Usar Artigos Específicos Selecionados ---
         if (
             config.useSpecificArticles &&
             config.selectedArticles &&
             config.selectedArticles.length > 0
         ) {
+            console.log(
+                `[Quiz Gen] Gerando quiz a partir de ${config.selectedArticles.length} artigos específicos.`
+            );
             return await this.generateQuizFromSpecificArticles(config);
         }
 
-        // Filter chunks based on source if specified
-        let availableChunks = lexiaChunks;
-        if (config.sourceFilter && config.sourceFilter !== 'all') {
-            availableChunks = lexiaChunks.filter(
-                (chunk) => chunk.file === config.sourceFilter
-            );
-        }
+        // --- Caminho 2: Selecionar Artigos Aleatórios (Baseado no Filtro de Fonte) ---
+        console.log(
+            `[Quiz Gen] Gerando quiz a partir de artigos aleatórios. Filtro de fonte: ${config.sourceFilter}`
+        );
+        let availableArticles = [];
 
-        if (availableChunks.length === 0) {
-            alert('Nenhum conteúdo disponível para a fonte selecionada.');
+        // Coleta todos os artigos disponíveis, filtrando pela fonte se necessário
+        lexiaChunks.forEach((chunk) => {
+            if (
+                config.sourceFilter === 'all' ||
+                chunk.file === config.sourceFilter
+            ) {
+                if (chunk.legalArticles && chunk.legalArticles.length > 0) {
+                    chunk.legalArticles.forEach((article) => {
+                        // Adiciona informações do chunk ao artigo para uso posterior
+                        availableArticles.push({
+                            ...article,
+                            chunkId: chunk.id,
+                            fileName: chunk.file, // Garante que fileName está presente
+                        });
+                    });
+                }
+            }
+        });
+
+        // Remove duplicatas (caso um artigo apareça em múltiplos chunks da mesma fonte)
+        availableArticles = availableArticles.filter(
+            (article, index, self) =>
+                index === self.findIndex((a) => a.id === article.id)
+        );
+
+        if (availableArticles.length === 0) {
+            alert(
+                `Nenhum artigo de lei encontrado para a fonte "${
+                    config.sourceFilter === 'all'
+                        ? 'Todas as Fontes'
+                        : getTrackMetadata(config.sourceFilter).displayName ||
+                          config.sourceFilter
+                }". Verifique os PDFs processados.`
+            );
             return null;
         }
 
-        const shuffledChunks = [...availableChunks].sort(
+        console.log(
+            `[Quiz Gen] ${availableArticles.length} artigos disponíveis para seleção aleatória.`
+        );
+
+        // Embaralha os artigos disponíveis
+        const shuffledArticles = [...availableArticles].sort(
             () => Math.random() - 0.5
         );
-        const selectedChunks = shuffledChunks.slice(0, config.numQuestions);
-        const questions = [];
 
-        for (let i = 0; i < selectedChunks.length; i++) {
-            const chunk = selectedChunks[i];
-            const question = await this.generateAdvancedQuestion(
-                chunk,
-                i,
-                config
-            );
-            questions.push(question);
+        // Seleciona o número necessário de artigos (ou todos, se menos que o solicitado)
+        const articlesForQuiz = shuffledArticles.slice(0, config.numQuestions);
+        console.log(
+            `[Quiz Gen] ${articlesForQuiz.length} artigos selecionados aleatoriamente.`
+        );
+
+        // Gera UMA questão para cada artigo selecionado
+        const questions = [];
+        let questionIndex = 0;
+        for (const article of articlesForQuiz) {
+            try {
+                // Usa a mesma função de geração, mas só gera 1 questão por artigo (questionNumber = 1)
+                const question = await this.generateQuestionFromArticle(
+                    article,
+                    questionIndex,
+                    config,
+                    1
+                );
+                if (question) {
+                    questions.push(question);
+                } else {
+                    // Adiciona fallback se a geração falhar
+                    console.warn(
+                        `[Quiz Gen] Falha ao gerar questão para ${article.fullReference}. Usando fallback.`
+                    );
+                    questions.push(
+                        this.generateFallbackQuestionFromArticle(
+                            article,
+                            questionIndex,
+                            config
+                        )
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    `Erro ao gerar questão aleatória para ${article.fullReference}:`,
+                    error
+                );
+                questions.push(
+                    this.generateFallbackQuestionFromArticle(
+                        article,
+                        questionIndex,
+                        config
+                    )
+                );
+            }
+            questionIndex++;
+            // Pausa entre chamadas
+            if (questionIndex < articlesForQuiz.length) {
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // Pausa de 1s
+            }
         }
 
+        // Embaralha as questões geradas
+        const finalQuestions = questions.sort(() => Math.random() - 0.5);
+
         this.currentQuiz = {
-            id: Date.now(),
-            questions: questions,
-            config: config,
+            id: `quiz-${Date.now()}`,
+            questions: finalQuestions,
+            config: config, // Salva a configuração usada
             startTime: new Date(),
             endTime: null,
             score: 0,
+            userAnswers: [], // Inicializa vazio
+            fromSpecificArticles: false, // Indica que foi seleção aleatória
         };
 
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.userAnswers = new Array(finalQuestions.length).fill(undefined); // Cria array com tamanho correto
+        this.questionStartTime = Date.now();
+
+        console.log(
+            `[Quiz Gen] Quiz aleatório gerado com ${finalQuestions.length} questões.`
+        );
         return this.currentQuiz;
     }
 
@@ -6296,103 +6437,361 @@ class QuizManager {
         return this.currentQuiz;
     }
 
-    // SUBSTITUA A SUA FUNÇÃO 'generateQuestionFromArticle' POR ESTA:
+    // app.js - Dentro da classe QuizManager
+    // SUBSTITUA a função generateQuestionFromArticle INTEIRA por esta:
+
     async generateQuestionFromArticle(article, index, config, questionNumber) {
+        console.log(
+            `[Quiz Gen] Gerando questão ${index + 1} para Art. ${
+                article.number
+            } (Tentativa ${questionNumber})`
+        );
+
+        // Opções de Foco (completas)
         const focusPrompts = {
-            general: 'questões gerais sobre o conteúdo do artigo',
-            laws: 'questões específicas sobre a aplicação e interpretação do artigo',
-            concepts: 'questões focadas em conceitos e definições do artigo',
-            procedures: 'questões sobre procedimentos descritos no artigo',
+            general: 'foco geral no conteúdo principal',
+            laws: 'foco específico na aplicação e interpretação da lei',
+            concepts: 'foco em conceitos e definições jurídicas',
+            procedures: 'foco em procedimentos, prazos e trâmites',
             jurisprudence:
-                'questões sobre interpretações jurisprudenciais do artigo',
+                'foco em possíveis interpretações jurisprudenciais (se aplicável no texto)',
         };
 
+        // Opções de Tipo (completas)
         const typeInstructions = {
             'multiple-choice': `múltipla escolha com ${config.numOptions} alternativas`,
             'true-false': 'verdadeiro ou falso',
             essay: 'dissertativa (resposta em texto)',
-            mixed: 'formato variado',
+            mixed: 'formato variado (preferencialmente múltipla escolha)', // Favorece MC se misto
         };
 
-        const prompt = `
-Crie uma questão de ${
-            typeInstructions[config.questionType]
-        } baseada no seguinte artigo de lei:
-
-**Artigo:** ${article.fullReference}
-**Lei:** ${article.law}
-**Assunto:** ${article.subject}
-**Texto:** ${article.fullText || 'Texto não disponível'}
-**Contexto:** ${article.context || ''}
-
-**Configurações:**
-- Dificuldade: ${config.difficulty}
-- Foco: ${focusPrompts[config.contentFocus]}
-- Questão número: ${questionNumber} (varie o tipo e dificuldade)
-- ${config.includeTricks ? 'INCLUIR pegadinhas e armadilhas' : 'SEM pegadinhas'}
-- ${
-            config.contextual
-                ? 'Questão contextualizada com situação prática'
-                : 'Questão direta'
-        }
-
-FORMATO DE RESPOSTA:
-${
-    config.questionType === 'multiple-choice'
-        ? `PERGUNTA: [sua pergunta]
-A) [alternativa A]
-B) [alternativa B]
-C) [alternativa C]
-${config.numOptions >= 4 ? 'D) [alternativa D]' : ''}
-${config.numOptions >= 5 ? 'E) [alternativa E]' : ''}
-RESPOSTA_CORRETA: [letra da alternativa correta]
-EXPLICACAO: [explicação detalhada]`
-        : config.questionType === 'true-false'
-        ? `PERGUNTA: [sua pergunta]
-RESPOSTA_CORRETA: [VERDADEIRO ou FALSO]
-EXPLICACAO: [explicação detalhada]`
-        : `PERGUNTA: [sua pergunta dissertativa]
-RESPOSTA_ESPERADA: [pontos principais que devem ser abordados]
-EXPLICACAO: [critérios de avaliação]`
-}
-
-Crie uma questão relevante e educativa sobre este artigo específico:`;
-
-        const response = await callGemini(prompt);
-        if (response) {
-            // <-- CORREÇÃO: Passamos o objeto 'article' inteiro para o parser
-            return this.parseQuestionResponse(response, article, index, config);
-        }
-
-        return null;
-    }
-
-    generateFallbackQuestionFromArticle(article, index, config) {
-        const options = [
-            `Segundo o ${article.fullReference}`,
-            'Conforme a legislação vigente',
-            'De acordo com a jurisprudência',
-            'Segundo a doutrina majoritária',
+        // Lista de Nomes para Cenários (completa)
+        const characterNames = [
+            'Caio',
+            'Mévia',
+            'Tício',
+            'Seprônia',
+            'Mévio',
+            'Helena',
+            'João',
+            'Marcelo',
+            'Carlos',
+            'Pedro',
+            'Mariana',
+            'Romeu',
+            'Cleide',
+            'Douglas',
+            'Carmem',
+            'Vinícius',
+            'Teresa',
+            'Alexandre',
+            'Raquel',
+            'Cláudia',
+            'Ricardo',
+            'Sumaia',
+            'José Inocêncio',
+            'Maria das Dores',
+            'Ester',
+            'Hermes',
+            'Virgílio',
+            'Policarpo',
+            'Adelaide',
+            'Aquiles',
+            'Narciso',
+            'Cícero',
+            'Arquibaldo',
         ];
 
-        return {
-            id: `fallback-q${index}`,
-            type: 'multiple-choice',
-            question: `Qual é o tema principal do ${article.fullReference}?`,
-            options: options,
-            correctAnswer: 0,
-            explanation: `O ${article.fullReference} trata de: ${article.subject}`,
-            articleReference: article.fullReference,
-            difficulty: config.difficulty,
-        };
-    }
+        // Seleção Aleatória de Estrutura (Enunciado x Alternativas) (completa)
+        const structures = [
+            'short_q_short_a',
+            'short_q_long_a',
+            'short_q_long_a',
+            'long_q_short_a',
+            'long_q_long_a',
+            'long_q_long_a',
+        ];
+        const selectedStructure =
+            structures[Math.floor(Math.random() * structures.length)];
+        console.log(`[Quiz Gen] Estrutura selecionada: ${selectedStructure}`);
 
-    async generateAdvancedQuestion(chunk, index, config) {
-        const prompt = this.buildQuestionPrompt(chunk, config);
+        // Seleção Aleatória de Estilo (com pesos e ajuste pela estrutura - completa)
+        const styles = [
+            'detail_focus', // Foco em Detalhes/Exceções (Metodologia 2) - Maior peso
+            'detail_focus',
+            'correct_statement', // "É correto afirmar..." (Metodologia 5)
+            'correct_statement',
+            'scenario', // Aplicação a Cenários (Metodologia 1) - Menor peso
+            'distinguish_concepts', // Distinguir Conceitos (Metodologia 3) - Se aplicável
+            'direct', // Pergunta direta (fallback ou variação)
+        ];
+        let selectedStyle = styles[Math.floor(Math.random() * styles.length)];
 
+        // Ajuste de Estilo pela Estrutura e Conteúdo (completo)
+        if (
+            selectedStructure.startsWith('long_q') &&
+            article.fullText &&
+            article.fullText.length > 50 &&
+            Math.random() < 0.6
+        ) {
+            // 60% chance de forçar cenário
+            selectedStyle = 'scenario';
+        } else if (
+            selectedStyle === 'scenario' &&
+            (!article.fullText || article.fullText.length <= 50)
+        ) {
+            selectedStyle = 'detail_focus'; // Fallback se artigo for curto
+        } else if (
+            selectedStyle === 'distinguish_concepts' &&
+            !(
+                article.paragraphs?.length > 0 ||
+                (article.fullText && article.fullText.includes(' II '))
+            )
+        ) {
+            selectedStyle = 'direct'; // Fallback se não há conceitos claros para distinguir
+        }
+        console.log(`[Quiz Gen] Estilo final selecionado: ${selectedStyle}`);
+
+        let specificInstructions = ''; // Para o enunciado/pergunta
+        let formatInstructions = ''; // Para as alternativas e formato geral
+
+        // Construção das Instruções Específicas (Enunciado - completo)
+        switch (selectedStyle) {
+            case 'scenario':
+                const randomNames = characterNames
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 2); // Pega 2 nomes aleatórios
+                specificInstructions = `Crie um CENÁRIO HIPOTÉTICO DETALHADO (2-4 frases), similar aos exemplos de prova, usando personagens como ${randomNames[0]} e ${randomNames[1]}, que ilustre a APLICAÇÃO PRÁTICA deste artigo. `;
+                if (selectedStructure.startsWith('short_q')) {
+                    specificInstructions += `Após o cenário, formule a PERGUNTA de forma direta e concisa (ex: "Nesse caso, é correto afirmar que...?").`;
+                } else {
+                    // long_q
+                    specificInstructions += `A PERGUNTA deve pedir a SOLUÇÃO JURÍDICA CORRETA para o cenário, baseada ESTRITAMENTE no texto do artigo. Pode ser uma pergunta mais elaborada.`;
+                }
+                break;
+            case 'correct_statement':
+                specificInstructions = `Formule a questão no estilo "Considerando o ${article.fullReference}, assinale a alternativa CORRETA:". `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Antes disso, adicione uma breve descrição contextual (1-2 frases) sobre o tema geral ou a importância do artigo.`;
+                }
+                break;
+            case 'detail_focus':
+                specificInstructions = `Foque a pergunta em um DETALHE específico do artigo (PRAZO, REQUISITO, VEDAÇÃO, CLASSIFICAÇÃO, PENA, CONDIÇÃO, EXCEÇÃO). `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Inicie com uma breve introdução (1-2 frases) sobre o contexto desse detalhe dentro do artigo antes de fazer a pergunta específica (ex: "Quanto ao prazo previsto no Art. X...").`;
+                } else {
+                    // short_q
+                    specificInstructions += `A pergunta deve ser direta sobre esse detalhe (ex: "Qual o prazo para...?").`;
+                }
+                break;
+            case 'distinguish_concepts':
+                specificInstructions = `Crie uma questão que exija DISTINGUIR precisamente entre diferentes hipóteses, classificações ou conceitos presentes no artigo (ex: caput vs. parágrafos, incisos diferentes). `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Descreva brevemente as hipóteses/conceitos (1-2 frases) antes de pedir a diferenciação correta.`;
+                } else {
+                    // short_q
+                    specificInstructions += `A pergunta deve ser direta sobre a diferenciação (ex: "Diferencie A de B conforme o artigo:").`;
+                }
+                break;
+            case 'direct':
+            default:
+                specificInstructions = `Crie uma pergunta DIRETA sobre o conteúdo principal ou um aspecto relevante do artigo. `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Contextualize brevemente o tema (1-2 frases) antes da pergunta direta.`;
+                }
+                break;
+        }
+        // Adiciona foco do conteúdo (completo)
+        if (focusPrompts[config.contentFocus]) {
+            specificInstructions += ` Dê atenção especial a: ${
+                focusPrompts[config.contentFocus]
+            }.`;
+        }
+
+        // --- Construção das Instruções de Formato (Alternativas e EXPLICAÇÕES INDIVIDUAIS) ---
+        let effectiveQuestionType =
+            config.questionType === 'mixed'
+                ? 'multiple-choice'
+                : config.questionType;
+
+        if (effectiveQuestionType === 'multiple-choice') {
+            let alternativeLengthInstruction = '';
+            if (selectedStructure.endsWith('short_a')) {
+                alternativeLengthInstruction = `As alternativas (A, B, C...) devem ser CURTAS e objetivas (ex: apenas o nome do instituto, um prazo, um verbo, uma frase curta).`;
+            } else {
+                // long_a
+                alternativeLengthInstruction = `As alternativas (A, B, C...) devem ser MAIS ELABORADAS (frases completas), descrevendo uma situação, explicando uma regra ou aplicando um conceito, similar às alternativas longas das provas.`;
+            }
+
+            // ===== NOVO FORMATO COM EXPLICAÇÕES INDIVIDUAIS =====
+            formatInstructions = `FORMATO DE RESPOSTA OBRIGATÓRIO (Múltipla Escolha - ${
+                config.numOptions
+            } opções):
+PERGUNTA: [${
+                selectedStyle === 'scenario' ? 'Cenário e ' : ''
+            }Sua pergunta aqui, conforme instrução]
+A) [Alternativa A]
+B) [Alternativa B]
+C) [Alternativa C]
+${config.numOptions >= 4 ? 'D) [Alternativa D]' : ''}
+${config.numOptions >= 5 ? 'E) [Alternativa E]' : ''}
+RESPOSTA_CORRETA: [Letra da alternativa correta (A, B, C, D ou E)]
+EXPLICACAO_A: [Explicação CURTA para a alternativa A (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "A)" aqui.]
+EXPLICACAO_B: [Explicação CURTA para a alternativa B (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "B)" aqui.]
+EXPLICACAO_C: [Explicação CURTA para a alternativa C (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "C)" aqui.]
+${
+    config.numOptions >= 4
+        ? 'EXPLICACAO_D: [Explicação CURTA para a alternativa D (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "D)" aqui.]'
+        : ''
+}
+${
+    config.numOptions >= 5
+        ? 'EXPLICACAO_E: [Explicação CURTA para a alternativa E (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "E)" aqui.]'
+        : ''
+}
+
+**REGRAS CRUCIAIS PARA OS DISTRATORES (ALTERNATIVAS INCORRETAS):**
+1.  **PLAUSIBILIDADE MÁXIMA:** Devem parecer corretas e ser relacionadas diretamente ao tema do artigo.
+2.  **ERROS SUTIS (OBRIGATÓRIO):** Cada distrator deve conter APENAS UM erro sutil, mas significativo. Use as seguintes técnicas:
+    * **TROCA SUTIL DE TERMOS:** Substitua uma palavra-chave por um sinônimo incorreto ou termo juridicamente distinto (ex: "suspensão" vs. "interrupção", "impedimento" vs. "suspeição", "detenção" vs. "reclusão", "deverá" vs. "poderá").
+    * **NÚMEROS/PRAZOS/PERCENTUAIS PRÓXIMOS:** Altere levemente valores numéricos (ex: "5 anos" em vez de "2 anos", "20%" em vez de "25%").
+    * **CONDIÇÃO/REQUISITO INVERTIDO OU MODIFICADO:** Afirme o oposto de uma condição, remova um requisito necessário ou adicione um inexistente.
+    * **GENERALIZAÇÃO/ESPECIFICAÇÃO INDEVIDA:** Aplique uma regra geral a um caso específico de exceção, ou vice-versa.
+    * **INVERSÃO LÓGICA:** Inverta a relação de causa e efeito ou a ordem de um procedimento.
+3.  **PARCIALMENTE CORRETAS:** As alternativas incorretas DEVEM estar parcialmente corretas, contendo informações verdadeiras do artigo, mas com o erro sutil introduzido.
+4.  **IMITAR ESTRUTURA:** Os distratores devem, sempre que possível, ter estrutura gramatical e tamanho similares à alternativa correta.
+5.  **NÃO ÓBVIAS:** Evite erros grosseiros ou alternativas completamente sem relação com o artigo. O objetivo é testar atenção e conhecimento preciso.
+6.  **TAMANHO DA ALTERNATIVA:** Siga a instrução de tamanho: ${alternativeLengthInstruction}
+7.  **EXPLICAÇÕES INDIVIDUAIS:** Forneça uma explicação para CADA alternativa (A, B, C...), justificando a correta e apontando o erro sutil das incorretas, baseando-se no texto. NÃO mencione a letra da alternativa dentro do texto da explicação.`;
+            // ===== FIM DO NOVO FORMATO =====
+        } else {
+            // Formato para outros tipos (T/F, Essay - completo)
+            formatInstructions = `...(Adapte o formato para ${typeInstructions[effectiveQuestionType]} similarmente)...
+         EXPLICACAO: [Explicação curta e direta, sem mencionar letras]`;
+        }
+
+        // --- Montagem Final do Prompt (completo, com novas instruções de explicação) ---
+        const prompt = `
+Você é um especialista em criar questões de múltipla escolha para concursos públicos (nível TJSP Escrevente), com foco em Direito e Normas. Use linguagem formal, técnica e elabore questões e alternativas com o nível de dificuldade e sutileza encontrados nas provas reais (exemplos fornecidos anteriormente).
+
+Baseado EXCLUSIVAMENTE no seguinte artigo de lei, crie UMA questão de ${
+            typeInstructions[effectiveQuestionType]
+        }:
+
+**ARTIGO:** ${article.fullReference}
+**LEI:** ${article.law} (${getLawType(article.fileName, article.fullText)})
+**ASSUNTO:** ${article.subject}
+**TEXTO:** """${article.fullText || 'Texto não disponível'}"""
+**CONTEXTO:** ${article.context || 'Sem contexto adicional'}
+
+**INSTRUÇÕES PARA A QUESTÃO:**
+- Estrutura Desejada: ${selectedStructure} (Enunciado ${
+            selectedStructure.startsWith('long')
+                ? 'Longo/Detalhado'
+                : 'Curto/Direto'
+        }, Alternativas ${
+            selectedStructure.endsWith('long_a')
+                ? 'Longas/Elaboradas'
+                : 'Curtas/Objetivas'
+        })
+- Dificuldade Alvo: ${
+            config.difficulty
+        } (Aplique a dificuldade principalmente nos DISTRATORES)
+- Instrução Principal: ${specificInstructions} // <-- Instrução detalhada para o enunciado/pergunta
+- ${
+            config.includeTricks
+                ? 'OBRIGATÓRIO incluir "pegadinhas" sutis nos distratores, conforme as regras detalhadas.'
+                : 'Focar em erros plausíveis e técnicos nos distratores.'
+        }
+- ${
+            config.contextual && !selectedStyle.includes('scenario')
+                ? 'Tente contextualizar a pergunta com uma situação prática breve, se aplicável.'
+                : ''
+        }
+
+${formatInstructions} // <-- Formato e REGRAS CRUCIAIS (incluindo explicações individuais SEM letras)
+
+Garanta que a resposta correta e TODAS as explicações sejam ESTREITAMENTE baseadas no texto do artigo fornecido. Não use conhecimento externo. Revise os distratores e suas explicações para garantir erros SUTIS e PLAUSÍVEIS.`;
+
+        console.log(
+            `[Quiz Gen] Prompt (Estrutura: ${selectedStructure}, Estilo: ${selectedStyle}) para Art. ${article.number}:\n`,
+            prompt.substring(0, 500) + '...'
+        );
+
+        // --- Chamada da IA e Retorno (completo) ---
         try {
             const response = await callGemini(prompt);
             if (response) {
+                console.log(
+                    `[Quiz Gen] Resposta recebida da IA para Art. ${article.number}.`
+                );
+                return this.parseQuestionResponse(
+                    response,
+                    article,
+                    index,
+                    config
+                ); // Chama o parser atualizado
+            } else {
+                console.warn(
+                    `[Quiz Gen] IA não retornou resposta para Art. ${article.number}. Gerando fallback.`
+                );
+                return this.generateFallbackQuestionFromArticle(
+                    article,
+                    index,
+                    config
+                );
+            }
+        } catch (error) {
+            console.error(
+                `[Quiz Gen] Erro ao chamar IA para Art. ${article.number}:`,
+                error
+            );
+            console.warn(
+                `[Quiz Gen] Gerando fallback para Art. ${article.number} devido a erro.`
+            );
+            return this.generateFallbackQuestionFromArticle(
+                article,
+                index,
+                config
+            );
+        }
+    }
+
+    generateFallbackQuestionFromArticle(article, index, config) {
+        console.warn(
+            `[Quiz Fallback] Gerando questão fallback para Art. ${article.number}`
+        );
+        const options = this.generateFallbackOptions(config.numOptions); // Usa a função auxiliar
+
+        return {
+            id: `fallback-q-art-${index}-${Date.now()}`,
+            type: 'multiple-choice',
+            question: `(Fallback) Qual é o assunto principal abordado no ${article.fullReference}?`,
+            options: options,
+            correctAnswer: 0, // Assume A como correta no fallback
+            explanation: `Fallback: O ${article.fullReference} (${article.law}) trata sobre ${article.subject}. A geração pela IA falhou.`,
+            chunkId: article.chunkId,
+            difficulty: config.difficulty,
+            articleId: article.id,
+            articleReference: article.fullReference,
+            sourceFile: article.fileName,
+        };
+    }
+
+    // app.js - Dentro da classe QuizManager
+    async generateAdvancedQuestion(chunk, index, config) {
+        // ESTA FUNÇÃO NÃO É MAIS USADA DIRETAMENTE PARA GERAR O QUIZ PRINCIPAL
+        // A LÓGICA AGORA SELECIONA ARTIGOS PRIMEIRO.
+        // Pode ser mantida para outros usos ou removida se não for mais necessária.
+        // Vamos mantê-la como fallback se a seleção de artigos falhar drasticamente.
+        console.warn(
+            '[Quiz Gen Advanced] Chamando generateAdvancedQuestion (fallback de chunk).'
+        );
+        const prompt = this.buildQuestionPrompt(chunk, config); // Usa o buildQuestionPrompt atualizado
+        try {
+            const response = await callGemini(prompt);
+            if (response) {
+                // Usa o parseQuestionResponse atualizado
                 return this.parseQuestionResponse(
                     response,
                     chunk,
@@ -6401,139 +6800,676 @@ Crie uma questão relevante e educativa sobre este artigo específico:`;
                 );
             }
         } catch (error) {
-            console.error('Erro ao gerar questão com IA:', error);
+            console.error(
+                'Erro ao gerar questão avançada com IA (fallback chunk):',
+                error
+            );
         }
-
-        // Fallback to basic question generation
+        // Fallback para questão básica de chunk
+        console.warn(
+            '[Quiz Gen Advanced] Fallback final: gerando questão básica de chunk.'
+        );
         return this.generateQuestionFromChunk(chunk, index, config.difficulty);
     }
 
+    // app.js - Dentro da classe QuizManager
     buildQuestionPrompt(chunk, config) {
+        console.log(
+            `[Quiz Gen Chunk] Construindo prompt para chunk ${chunk.id}`
+        );
+
+        // Opções de Foco (completas)
         const focusInstructions = {
-            general: 'questões gerais sobre o conteúdo',
-            laws: 'questões específicas sobre leis, artigos e normas',
-            concepts: 'questões focadas em conceitos e definições jurídicas',
-            procedures: 'questões sobre procedimentos e trâmites',
-            jurisprudence: 'questões sobre jurisprudência e interpretações',
+            general: 'foco geral no conteúdo principal do trecho',
+            laws: 'foco específico na aplicação e interpretação de leis mencionadas',
+            concepts: 'foco em conceitos e definições jurídicas presentes',
+            procedures: 'foco em procedimentos, prazos e trâmites descritos',
+            jurisprudence:
+                'foco em possíveis interpretações jurisprudenciais (se houver menção)',
         };
 
+        // Opções de Tipo (completas)
         const typeInstructions = {
             'multiple-choice': `múltipla escolha com ${config.numOptions} alternativas`,
             'true-false': 'verdadeiro ou falso',
             essay: 'dissertativa (resposta em texto)',
-            mixed: 'formato variado',
+            mixed: 'formato variado (preferencialmente múltipla escolha)',
         };
 
-        return `
-Baseado no seguinte texto jurídico, crie uma questão de ${
-            typeInstructions[config.questionType]
-        } com foco em ${focusInstructions[config.contentFocus]}.
+        // Lista de Nomes (completa)
+        const characterNames = [
+            'Caio',
+            'Mévia',
+            'Tício',
+            'Seprônia',
+            'Mévio',
+            'Helena',
+            'João',
+            'Marcelo',
+            'Carlos',
+            'Pedro',
+            'Mariana',
+            'Romeu',
+            'Cleide',
+            'Douglas',
+            'Carmem',
+            'Vinícius',
+            'Teresa',
+            'Alexandre',
+            'Raquel',
+            'Cláudia',
+            'Ricardo',
+            'Sumaia',
+            'José Inocêncio',
+            'Maria das Dores',
+            'Ester',
+            'Hermes',
+            'Virgílio',
+            'Policarpo',
+            'Adelaide',
+            'Aquiles',
+            'Narciso',
+            'Cícero',
+            'Arquibaldo',
+        ];
 
-TEXTO:
-${chunk.text}
+        // --- Seleção Aleatória de Estrutura ---
+        const structures = [
+            'short_q_short_a',
+            'short_q_long_a',
+            'short_q_long_a',
+            'long_q_short_a',
+            'long_q_long_a',
+            'long_q_long_a',
+        ];
+        const selectedStructure =
+            structures[Math.floor(Math.random() * structures.length)];
+        console.log(
+            `[Quiz Gen Chunk] Estrutura selecionada: ${selectedStructure}`
+        );
 
-CONFIGURAÇÕES:
-- Dificuldade: ${config.difficulty}
-- ${config.includeTricks ? 'INCLUIR pegadinhas e armadilhas' : 'SEM pegadinhas'}
-- ${
-            config.contextual
-                ? 'Questão contextualizada com situação prática'
-                : 'Questão direta'
+        // --- Seleção Aleatória de Estilo ---
+        const styles = [
+            'detail_focus',
+            'detail_focus',
+            'correct_statement',
+            'correct_statement',
+            'distinguish_concepts',
+            'direct',
+            'direct',
+        ];
+        if (Math.random() < 0.2) styles.push('scenario'); // Mantém cenário menos provável para chunks
+        let selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+
+        // Ajuste de Estilo (completo)
+        if (
+            selectedStructure.startsWith('long_q') &&
+            chunk.text &&
+            chunk.text.length > 100 &&
+            Math.random() < 0.5
+        ) {
+            // 50% chance
+            selectedStyle = 'scenario';
+        } else if (
+            selectedStyle === 'scenario' &&
+            (!chunk.text || chunk.text.length <= 100)
+        ) {
+            selectedStyle = 'detail_focus'; // Fallback
+        } else if (
+            selectedStyle === 'distinguish_concepts' &&
+            !(chunk.text && chunk.text.toLowerCase().includes(' ou '))
+        ) {
+            // Heurística simples para distinguir
+            selectedStyle = 'direct'; // Fallback
+        }
+        console.log(
+            `[Quiz Gen Chunk] Estilo final selecionado: ${selectedStyle}`
+        );
+
+        let specificInstructions = '';
+        let formatInstructions = '';
+
+        // --- Construção das Instruções Específicas (Enunciado - completo) ---
+        switch (selectedStyle) {
+            case 'scenario':
+                const randomNames = characterNames
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 2);
+                specificInstructions = `Crie um CENÁRIO HIPOTÉTICO DETALHADO (2-4 frases), similar aos exemplos de prova, usando nomes como ${randomNames[0]} e ${randomNames[1]}, relacionado a um tópico deste trecho. `;
+                if (selectedStructure.startsWith('short_q')) {
+                    specificInstructions += `Após o cenário, formule a PERGUNTA de forma direta e concisa.`;
+                } else {
+                    specificInstructions += `A PERGUNTA deve pedir a SOLUÇÃO JURÍDICA CORRETA para o cenário, baseada ESTRITAMENTE no texto fornecido.`;
+                }
+                break;
+            case 'correct_statement':
+                specificInstructions = `Formule a questão no estilo "Considerando o trecho fornecido sobre ${chunk.file}, é CORRETO afirmar que:". `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Antes disso, adicione uma breve descrição contextual (1-2 frases) sobre o tema geral do trecho.`;
+                }
+                break;
+            case 'detail_focus':
+                specificInstructions = `Foque a pergunta em um DETALHE específico encontrado no trecho (PRAZO, REQUISITO, VEDAÇÃO, etc.). `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Inicie com uma breve introdução (1-2 frases) sobre o contexto desse detalhe antes da pergunta específica.`;
+                } else {
+                    specificInstructions += `A pergunta deve ser direta sobre esse detalhe.`;
+                }
+                break;
+            case 'distinguish_concepts':
+                specificInstructions = `Crie uma questão que exija DISTINGUIR precisamente entre diferentes conceitos ou regras presentes no trecho. `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Descreva brevemente os conceitos (1-2 frases) antes de pedir a diferenciação correta.`;
+                } else {
+                    specificInstructions += `A pergunta deve ser direta sobre a diferenciação.`;
+                }
+                break;
+            case 'direct':
+            default:
+                specificInstructions = `Crie uma pergunta DIRETA sobre um dos tópicos principais ou um aspecto relevante do trecho. `;
+                if (selectedStructure.startsWith('long_q')) {
+                    specificInstructions += `Contextualize brevemente o tema (1-2 frases) antes da pergunta direta.`;
+                }
+                break;
+        }
+        if (focusInstructions[config.contentFocus]) {
+            specificInstructions += ` Dê atenção especial a: ${
+                focusInstructions[config.contentFocus]
+            }.`;
         }
 
-FORMATO DE RESPOSTA:
+        // --- Construção das Instruções de Formato (Alternativas e EXPLICAÇÕES INDIVIDUAIS) ---
+        let effectiveQuestionType =
+            config.questionType === 'mixed'
+                ? 'multiple-choice'
+                : config.questionType;
+
+        if (effectiveQuestionType === 'multiple-choice') {
+            let alternativeLengthInstruction = '';
+            if (selectedStructure.endsWith('short_a')) {
+                alternativeLengthInstruction = `As alternativas (A, B, C...) devem ser CURTAS e objetivas.`;
+            } else {
+                // long_a
+                alternativeLengthInstruction = `As alternativas (A, B, C...) devem ser MAIS ELABORADAS (frases completas), explicando ou aplicando uma regra/conceito.`;
+            }
+
+            // ===== NOVO FORMATO COM EXPLICAÇÕES INDIVIDUAIS =====
+            formatInstructions = `FORMATO DE RESPOSTA OBRIGATÓRIO (Múltipla Escolha - ${
+                config.numOptions
+            } opções):
+PERGUNTA: [${
+                selectedStyle === 'scenario' ? 'Cenário e ' : ''
+            }Sua pergunta aqui, conforme instrução]
+A) [Alternativa A]
+B) [Alternativa B]
+C) [Alternativa C]
+${config.numOptions >= 4 ? 'D) [Alternativa D]' : ''}
+${config.numOptions >= 5 ? 'E) [Alternativa E]' : ''}
+RESPOSTA_CORRETA: [Letra da alternativa correta (A, B, C, D ou E)]
+EXPLICACAO_A: [Explicação CURTA para a alternativa A (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "A)" aqui.]
+EXPLICACAO_B: [Explicação CURTA para a alternativa B (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "B)" aqui.]
+EXPLICACAO_C: [Explicação CURTA para a alternativa C (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "C)" aqui.]
 ${
-    config.questionType === 'multiple-choice'
-        ? `PERGUNTA: [sua pergunta]
-A) [alternativa A]
-B) [alternativa B]
-C) [alternativa C]
-${config.numOptions >= 4 ? 'D) [alternativa D]' : ''}
-${config.numOptions >= 5 ? 'E) [alternativa E]' : ''}
-RESPOSTA_CORRETA: [letra da alternativa correta]
-EXPLICACAO: [explicação detalhada]`
-        : config.questionType === 'true-false'
-        ? `PERGUNTA: [sua pergunta]
-RESPOSTA_CORRETA: [VERDADEIRO ou FALSO]
-EXPLICACAO: [explicação detalhada]`
-        : `PERGUNTA: [sua pergunta dissertativa]
-RESPOSTA_ESPERADA: [pontos principais que devem ser abordados]
-EXPLICACAO: [critérios de avaliação]`
+    config.numOptions >= 4
+        ? 'EXPLICACAO_D: [Explicação CURTA para a alternativa D (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "D)" aqui.]'
+        : ''
+}
+${
+    config.numOptions >= 5
+        ? 'EXPLICACAO_E: [Explicação CURTA para a alternativa E (justificativa se correta, erro sutil se incorreta). NÃO mencione a letra "E)" aqui.]'
+        : ''
 }
 
-Crie uma questão relevante e educativa:`;
+**REGRAS CRUCIAIS PARA OS DISTRATORES (ALTERNATIVAS INCORRETAS):**
+1.  **PLAUSIBILIDADE MÁXIMA:** Devem parecer corretas e ser relacionadas ao tema do trecho.
+2.  **ERROS SUTIS (OBRIGATÓRIO):** Cada distrator deve conter APENAS UM erro sutil. Use as seguintes técnicas:
+    * **TROCA SUTIL DE TERMOS:** Substitua uma palavra-chave por um sinônimo incorreto ou termo juridicamente distinto (ex: "verbalmente" vs "por escrito", "pena de suspensão" vs "pena de detenção", "deverá" vs "poderá").
+    * **NÚMEROS/PRAZOS/PERCENTUAIS PRÓXIMOS:** Altere levemente valores numéricos (ex: "10 dias" em vez de "15 dias").
+    * **CONDIÇÃO/REQUISITO INVERTIDO OU MODIFICADO:** Afirme o oposto, remova ou adicione um requisito.
+    * **GENERALIZAÇÃO/ESPECIFICAÇÃO INDEVIDA.**
+    * **INVERSÃO LÓGICA.**
+3.  **PARCIALMENTE CORRETAS:** DEVEM conter informações verdadeiras do trecho, mas com o erro sutil introduzido.
+4.  **IMITAR ESTRUTURA:** Devem ter estrutura e tamanho similares à alternativa correta.
+5.  **NÃO ÓBVIAS:** Evite erros grosseiros.
+6.  **TAMANHO DA ALTERNATIVA:** Siga a instrução: ${alternativeLengthInstruction}
+7.  **EXPLICAÇÕES INDIVIDUAIS:** Forneça uma explicação para CADA alternativa (A, B, C...), justificando a correta e apontando o erro sutil das incorretas, baseando-se no texto. NÃO mencione a letra da alternativa dentro do texto da explicação.`;
+            // ===== FIM DO NOVO FORMATO =====
+        } else {
+            formatInstructions = `...(Adapte o formato para ${typeInstructions[effectiveQuestionType]} similarmente)...
+         EXPLICACAO: [Explicação curta e direta, sem mencionar letras]`;
+        }
+
+        // --- Montagem Final do Prompt (completo) ---
+        const prompt = `
+Você é um especialista em criar questões de múltipla escolha para concursos públicos (nível TJSP Escrevente), com foco em Direito e Normas. Use linguagem formal, técnica e elabore questões e alternativas com o nível de dificuldade e sutileza encontrados nas provas reais (exemplos fornecidos anteriormente).
+
+Baseado EXCLUSIVAMENTE no seguinte TRECHO de um documento jurídico (${
+            chunk.file
+        }), crie UMA questão de ${typeInstructions[effectiveQuestionType]}:
+
+**TRECHO (Página ${chunk.page}):**
+"""
+${chunk.text}
+"""
+
+**INSTRUÇÕES PARA A QUESTÃO:**
+- Estrutura Desejada: ${selectedStructure} (Enunciado ${
+            selectedStructure.startsWith('long')
+                ? 'Longo/Detalhado'
+                : 'Curto/Direto'
+        }, Alternativas ${
+            selectedStructure.endsWith('long_a')
+                ? 'Longas/Elaboradas'
+                : 'Curtas/Objetivas'
+        })
+- Dificuldade Alvo: ${
+            config.difficulty
+        } (Aplique a dificuldade principalmente nos DISTRATORES)
+- Instrução Principal: ${specificInstructions} // <-- Instrução detalhada para o enunciado/pergunta
+- ${
+            config.includeTricks
+                ? 'OBRIGATÓRIO incluir "pegadinhas" sutis nos distratores, conforme as regras detalhadas.'
+                : 'Focar em erros plausíveis e técnicos nos distratores.'
+        }
+- ${
+            config.contextual && !selectedStyle.includes('scenario')
+                ? 'Tente contextualizar a pergunta com uma situação prática breve, se aplicável.'
+                : ''
+        }
+
+${formatInstructions} // <-- Formato e REGRAS CRUCIAIS (incluindo explicações individuais SEM letras)
+
+Garanta que a resposta correta e TODAS as explicações sejam ESTREITAMENTE baseadas no texto do TRECHO fornecido. Não use conhecimento externo. Revise os distratores e suas explicações para garantir erros SUTIS e PLAUSÍVEIS.`;
+
+        console.log(
+            `[Quiz Gen Chunk] Prompt (Estrutura: ${selectedStructure}, Estilo: ${selectedStyle}) para chunk ${chunk.id}:\n`,
+            prompt.substring(0, 500) + '...'
+        );
+
+        return prompt;
     }
 
-    // SUBSTITUA A SUA FUNÇÃO 'parseQuestionResponse' POR ESTA:
+    // app.js - Dentro da classe QuizManager
     parseQuestionResponse(response, sourceObject, index, config) {
+        console.log(
+            `[Quiz Parse] Processando resposta da IA para item ${index}...`
+        );
         const lines = response.split('\n').filter((line) => line.trim());
 
-        // <-- CORREÇÃO: Variáveis para armazenar os dados específicos da fonte
+        // Identifica a fonte (artigo ou chunk)
         const isFromArticle = !!sourceObject.fullReference;
         const chunkId = isFromArticle ? sourceObject.chunkId : sourceObject.id;
         const articleId = isFromArticle ? sourceObject.id : null;
         const articleReference = isFromArticle
             ? sourceObject.fullReference
             : null;
+        const sourceFileName = sourceObject.file || sourceObject.fileName;
 
-        if (config.questionType === 'multiple-choice') {
-            const questionText = lines
-                .find((line) => line.startsWith('PERGUNTA:'))
-                ?.replace('PERGUNTA:', '')
-                .trim();
-            const options = lines
-                .filter((line) => /^[A-E]\)/.test(line))
-                .map((line) => line.substring(3).trim());
-            const correctLetter = lines
-                .find((line) => line.startsWith('RESPOSTA_CORRETA:'))
-                ?.replace('RESPOSTA_CORRETA:', '')
-                .trim();
-            const explanation = lines
-                .find((line) => line.startsWith('EXPLICACAO:'))
-                ?.replace('EXPLICACAO:', '')
-                .trim();
+        let effectiveQuestionType =
+            config.questionType === 'mixed'
+                ? 'multiple-choice'
+                : config.questionType;
 
-            const correctIndex = correctLetter
+        // --- PARSE PARA MÚLTIPLA ESCOLHA ---
+        if (effectiveQuestionType === 'multiple-choice') {
+            let questionText = '';
+            let rawOptions = [];
+            let correctLetter = '';
+            let explanationsRaw = {}; // Objeto para guardar explicações por letra
+            let explanationFallback = ''; // Fallback se extração individual falhar
+
+            // Tentativa de extração mais robusta
+            let currentPart = null;
+            lines.forEach((line) => {
+                const upperLine = line.toUpperCase();
+                if (upperLine.startsWith('PERGUNTA:')) {
+                    questionText = line.substring(line.indexOf(':') + 1).trim();
+                    currentPart = 'question';
+                } else if (/^[A-E]\)/.test(line.trim())) {
+                    rawOptions.push(line.trim());
+                    currentPart = 'options';
+                } else if (upperLine.startsWith('RESPOSTA_CORRETA:')) {
+                    correctLetter = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim()
+                        .toUpperCase();
+                    currentPart = 'correct';
+                    // ===== NOVA EXTRAÇÃO DE EXPLICAÇÕES INDIVIDUAIS =====
+                } else if (upperLine.startsWith('EXPLICACAO_A:')) {
+                    explanationsRaw['A'] = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_A';
+                } else if (upperLine.startsWith('EXPLICACAO_B:')) {
+                    explanationsRaw['B'] = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_B';
+                } else if (upperLine.startsWith('EXPLICACAO_C:')) {
+                    explanationsRaw['C'] = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_C';
+                } else if (upperLine.startsWith('EXPLICACAO_D:')) {
+                    explanationsRaw['D'] = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_D';
+                } else if (upperLine.startsWith('EXPLICACAO_E:')) {
+                    explanationsRaw['E'] = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_E';
+                    // ===== FIM DA NOVA EXTRAÇÃO =====
+                    // Fallback para explicação única (se o novo formato falhar)
+                } else if (upperLine.startsWith('EXPLICACAO:')) {
+                    explanationFallback = line
+                        .substring(line.indexOf(':') + 1)
+                        .trim();
+                    currentPart = 'explanation_fallback';
+                    // Continuação de explicações ou pergunta
+                } else if (currentPart?.startsWith('explanation_')) {
+                    const currentLetter = currentPart.split('_')[1];
+                    // Verifica se a chave existe antes de concatenar (segurança)
+                    if (explanationsRaw[currentLetter]) {
+                        explanationsRaw[currentLetter] += '\n' + line.trim();
+                    }
+                } else if (currentPart === 'explanation_fallback') {
+                    explanationFallback += '\n' + line.trim();
+                } else if (
+                    currentPart === 'question' &&
+                    !/^[A-E]\)/.test(line.trim())
+                ) {
+                    questionText += '\n' + line.trim();
+                }
+            });
+
+            // Validação inicial (verifica se temos explicações individuais)
+            const hasIndividualExplanations =
+                Object.keys(explanationsRaw).length >= rawOptions.length;
+
+            if (
+                !questionText ||
+                rawOptions.length < 2 ||
+                !correctLetter ||
+                (!hasIndividualExplanations && !explanationFallback)
+            ) {
+                console.warn(
+                    `[Quiz Parse] Falha no parseamento inicial do formato MC (c/ expl.) para item ${index}. Resposta IA:\n`,
+                    response
+                );
+                // Tenta fallback mais simples
+                if (rawOptions.length >= 2 && correctLetter) {
+                    questionText =
+                        questionText ||
+                        `Questão ${index + 1} sobre ${sourceFileName}`;
+                    explanationFallback =
+                        explanationFallback ||
+                        'Explicação não fornecida pela IA.';
+                    explanationsRaw = {}; // Limpa se for usar fallback único
+                    console.log(
+                        '[Quiz Parse] Usando fallback de parseamento MC (explicação única).'
+                    );
+                } else {
+                    console.error(
+                        `[Quiz Parse] Parseamento MC falhou completamente para item ${index}. Gerando fallback.`
+                    );
+                    // Retorna um fallback adequado
+                    return isFromArticle
+                        ? this.generateFallbackQuestionFromArticle(
+                              sourceObject,
+                              index,
+                              config
+                          )
+                        : this.generateQuestionFromChunk(
+                              sourceObject,
+                              index,
+                              config.difficulty
+                          ); // Usa fallback adequado
+                }
+            }
+
+            let options = rawOptions.map((line) =>
+                line.substring(line.indexOf(')') + 1).trim()
+            );
+            let originalCorrectIndex = correctLetter
                 ? correctLetter.charCodeAt(0) - 65
-                : 0;
+                : -1; // 0=A, 1=B, ...
 
-            return {
-                id: `q${index}`,
+            // Valida o índice original
+            if (
+                originalCorrectIndex < 0 ||
+                originalCorrectIndex >= options.length
+            ) {
+                console.warn(
+                    `[Quiz Parse] Letra da resposta correta ('${correctLetter}') inválida. Usando índice 0.`
+                );
+                originalCorrectIndex = 0; // Fallback seguro
+            }
+
+            // ===== SINCRONIZAÇÃO DAS EXPLICAÇÕES COM AS OPÇÕES =====
+            let explanations = [];
+            if (hasIndividualExplanations) {
+                // Monta o array de explicações na ordem original (A, B, C...)
+                explanations = options.map((_, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    return (
+                        explanationsRaw[letter] ||
+                        `Explicação para ${letter} não encontrada.`
+                    );
+                });
+            } else {
+                // Se falhou em pegar individuais, usa o fallback único para a correta e um genérico para as erradas
+                explanations = options.map((_, i) => {
+                    return i === originalCorrectIndex
+                        ? explanationFallback
+                        : 'Esta alternativa está incorreta.';
+                });
+                console.warn(
+                    '[Quiz Parse] Usando explicação de fallback devido à falha na extração individual.'
+                );
+            }
+            // =======================================================
+
+            // ===== LÓGICA DE RANDOMIZAÇÃO (OPÇÕES E EXPLICAÇÕES JUNTAS) =====
+            let finalCorrectAnswer = originalCorrectIndex; // Assume o original por padrão
+            if (options.length > 1) {
+                console.log(
+                    `[Quiz Parse] Iniciando randomização para item ${index}. Correta original: ${correctLetter} (${originalCorrectIndex})`
+                );
+
+                // Cria um array de objetos combinando opção e explicação
+                let combinedOptions = options.map((text, i) => ({
+                    originalIndex: i,
+                    text: text,
+                    explanation: explanations[i], // Associa a explicação correta
+                }));
+
+                const originalCorrectText =
+                    combinedOptions[originalCorrectIndex]?.text; // Guarda texto da correta (com verificação)
+
+                // Verifica se conseguiu pegar o texto correto antes de embaralhar
+                if (originalCorrectText === undefined) {
+                    console.error(
+                        `[Quiz Parse] ERRO CRÍTICO: Não foi possível obter o texto da resposta correta original (índice ${originalCorrectIndex}) para item ${index}. Abortando randomização.`
+                    );
+                    // Neste caso, mantém a ordem original para evitar erros
+                    // Garante que 'explanations' tenha a ordem original também
+                    explanations = combinedOptions
+                        .sort((a, b) => a.originalIndex - b.originalIndex)
+                        .map((opt) => opt.explanation);
+                } else {
+                    // Embaralha o array combinado
+                    for (let i = combinedOptions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [combinedOptions[i], combinedOptions[j]] = [
+                            combinedOptions[j],
+                            combinedOptions[i],
+                        ];
+                    }
+
+                    // Separa novamente as opções e explicações na nova ordem
+                    options = combinedOptions.map((opt) => opt.text);
+                    explanations = combinedOptions.map(
+                        (opt) => opt.explanation
+                    ); // Explicações agora na ordem embaralhada
+
+                    // Encontra o NOVO índice do texto da resposta correta
+                    const newCorrectIndex = options.findIndex(
+                        (text) => text === originalCorrectText
+                    );
+
+                    if (newCorrectIndex !== -1) {
+                        finalCorrectAnswer = newCorrectIndex; // Usa o novo índice randomizado
+                        console.log(
+                            `[Quiz Parse] Randomização OK para item ${index}. Nova correta: ${String.fromCharCode(
+                                65 + finalCorrectAnswer
+                            )} (${finalCorrectAnswer})`
+                        );
+                    } else {
+                        // Fallback de segurança se algo der errado no embaralhamento
+                        console.warn(
+                            `[Quiz Parse] Erro ao encontrar resposta correta após embaralhar item ${index}. Usando índice original ${originalCorrectIndex}.`
+                        );
+                        finalCorrectAnswer = originalCorrectIndex; // Mantém o original como fallback
+                        // DESFAZ o embaralhamento das explicações se a opção correta não foi encontrada
+                        explanations = options.map(
+                            (_, i) =>
+                                combinedOptions.find(
+                                    (opt) => opt.text === options[i]
+                                )?.explanation || 'Erro na explicação.'
+                        );
+                    }
+                }
+            }
+            // ===== FIM DA LÓGICA DE RANDOMIZAÇÃO =====
+
+            // Garante o número correto de opções e explicações conforme a configuração
+            while (options.length < config.numOptions) {
+                console.warn(
+                    `[Quiz Parse] IA gerou ${options.length} opções, mas ${config.numOptions} eram esperadas para item ${index}. Adicionando placeholders.`
+                );
+                options.push(`[Opção Inválida ${options.length + 1}]`);
+                explanations.push('Explicação indisponível.');
+            }
+            if (options.length > config.numOptions) {
+                console.warn(
+                    `[Quiz Parse] IA gerou ${options.length} opções, mas ${config.numOptions} eram esperadas para item ${index}. Removendo extras.`
+                );
+                options = options.slice(0, config.numOptions);
+                explanations = explanations.slice(0, config.numOptions); // Corta explicações também
+                // Revalida o índice correto se ele foi cortado
+                if (finalCorrectAnswer >= config.numOptions) {
+                    console.error(
+                        `[Quiz Parse] Resposta correta (${finalCorrectAnswer}) foi cortada após ajuste do número de opções para item ${index}. Resetando para 0.`
+                    );
+                    finalCorrectAnswer = 0; // Fallback extremo
+                }
+            }
+
+            // Monta o objeto final da questão
+            const questionObject = {
+                id: `q-${sourceObject.id}-${index}-${Date.now()}`, // ID único
                 type: 'multiple-choice',
-                question:
-                    questionText ||
-                    `Questão sobre ${sourceObject.file || sourceObject.law}`,
-                options:
-                    options.length >= config.numOptions
-                        ? options
-                        : this.generateFallbackOptions(config.numOptions),
-                correctAnswer: Math.min(correctIndex, options.length - 1),
-                explanation: explanation || 'Baseado no conteúdo do material.',
-                chunkId: chunkId,
+                question: questionText,
+                options: options, // Opções finais (randomizadas e número correto)
+                correctAnswer: finalCorrectAnswer, // Índice correto final
+                explanations: explanations, // Array de explicações sincronizado
+                // explanation: '', // Campo antigo não é mais necessário
+                chunkId: chunkId, // ID do chunk de origem
                 difficulty: config.difficulty,
-                articleId: articleId, // <-- CORREÇÃO: Adicionando o ID do artigo
-                articleReference: articleReference, // <-- CORREÇÃO: Adicionando a referência
+                articleId: articleId, // ID do artigo (ou null)
+                articleReference: articleReference, // Referência do artigo (ou null)
+                sourceFile: sourceFileName, // Nome do arquivo de origem
             };
+            console.log(
+                `[Quiz Parse] Questão MC parseada e randomizada para item ${index}:`,
+                { id: questionObject.id, correct: questionObject.correctAnswer }
+            );
+            return questionObject;
+        }
+        // --- PARSE PARA OUTROS TIPOS (True/False, Essay) ---
+        else if (effectiveQuestionType === 'true-false') {
+            // Implementar parse para T/F
+            // ...
+            console.warn(
+                `[Quiz Parse] Parse para True/False ainda não implementado. Gerando fallback MC para item ${index}.`
+            );
+            // Recorre ao fallback de MC por enquanto
+            config.questionType = 'multiple-choice'; // Força MC para o fallback
+            return isFromArticle
+                ? this.generateFallbackQuestionFromArticle(
+                      sourceObject,
+                      index,
+                      config
+                  )
+                : this.generateQuestionFromChunk(
+                      sourceObject,
+                      index,
+                      config.difficulty
+                  ); // Usa fallback adequado
+        } else if (effectiveQuestionType === 'essay') {
+            // Implementar parse para Essay
+            // ...
+            console.warn(
+                `[Quiz Parse] Parse para Essay ainda não implementado. Gerando fallback MC para item ${index}.`
+            );
+            config.questionType = 'multiple-choice'; // Força MC para o fallback
+            return isFromArticle
+                ? this.generateFallbackQuestionFromArticle(
+                      sourceObject,
+                      index,
+                      config
+                  )
+                : this.generateQuestionFromChunk(
+                      sourceObject,
+                      index,
+                      config.difficulty
+                  ); // Usa fallback adequado
         }
 
-        // Fallback
-        return this.generateQuestionFromChunk(chunk, index, config.difficulty);
+        // Fallback genérico se o tipo de questão for desconhecido
+        console.error(
+            `[Quiz Parse] Tipo de questão desconhecido ou falha geral no parse para item ${index}: ${config.questionType}. Gerando fallback MC.`
+        );
+        config.questionType = 'multiple-choice'; // Força MC para o fallback
+        return isFromArticle
+            ? this.generateFallbackQuestionFromArticle(
+                  sourceObject,
+                  index,
+                  config
+              )
+            : this.generateQuestionFromChunk(
+                  sourceObject,
+                  index,
+                  config.difficulty
+              ); // Usa fallback adequado
     }
 
+    // app.js - Dentro da classe QuizManager
     generateFallbackOptions(numOptions) {
-        const options = ['Opção A', 'Opção B', 'Opção C'];
-        if (numOptions >= 4) options.push('Opção D');
-        if (numOptions >= 5) options.push('Opção E');
-        return options;
+        const options = [
+            'Opção A (Fallback)',
+            'Opção B (Fallback)',
+            'Opção C (Fallback)',
+        ];
+        if (numOptions >= 4) options.push('Opção D (Fallback)');
+        if (numOptions >= 5) options.push('Opção E (Fallback)');
+        // Retorna apenas o número solicitado
+        return options.slice(0, numOptions);
     }
 
+    // app.js - Dentro da classe QuizManager
     generateQuestionFromChunk(chunk, index, difficulty) {
+        // --- Geração básica de fallback (mantida) ---
         const text = chunk.text;
         const sentences = text.split('.').filter((s) => s.trim().length > 20);
+        let fallbackQuestion = {};
 
         if (sentences.length === 0) {
-            return {
-                id: `q${index}`,
+            fallbackQuestion = {
+                id: `q-chunk-${index}-${Date.now()}`,
+                type: 'multiple-choice',
                 question: `Qual é o tema principal da página ${chunk.page} do arquivo ${chunk.file}?`,
                 options: [
                     'Direitos fundamentais',
@@ -6545,57 +7481,74 @@ Crie uma questão relevante e educativa:`;
                 explanation: `Baseado no conteúdo da página ${chunk.page} do arquivo ${chunk.file}.`,
                 chunkId: chunk.id,
                 difficulty: difficulty,
+                sourceFile: chunk.file, // Adiciona sourceFile
             };
+        } else {
+            const randomSentence =
+                sentences[Math.floor(Math.random() * sentences.length)].trim();
+            const words = randomSentence.split(' ').filter((w) => w.length > 3);
+
+            if (words.length > 0) {
+                const keyWord = words[Math.floor(Math.random() * words.length)];
+                const question = `Complete a frase: "${randomSentence.replace(
+                    keyWord,
+                    '______'
+                )}"`;
+                const correctAnswer = keyWord;
+                const wrongOptions = this.generateWrongOptions(
+                    correctAnswer,
+                    chunk.file
+                );
+                const allOptions = [correctAnswer, ...wrongOptions].sort(
+                    () => Math.random() - 0.5
+                );
+                const correctIndex = allOptions.indexOf(correctAnswer);
+
+                fallbackQuestion = {
+                    id: `q-chunk-${index}-${Date.now()}`,
+                    type: 'multiple-choice',
+                    question: question,
+                    options: allOptions,
+                    correctAnswer: correctIndex,
+                    explanation: `A resposta correta é "${correctAnswer}" conforme o conteúdo da página ${chunk.page} do arquivo ${chunk.file}.`,
+                    chunkId: chunk.id,
+                    difficulty: difficulty,
+                    sourceFile: chunk.file, // Adiciona sourceFile
+                };
+            } else {
+                // Fallback ainda mais básico se não achar palavras
+                fallbackQuestion = {
+                    id: `q-chunk-${index}-${Date.now()}`,
+                    type: 'multiple-choice',
+                    question: `Qual conceito está relacionado ao conteúdo da página ${chunk.page} do arquivo ${chunk.file}?`,
+                    options: [
+                        'Princípios gerais',
+                        'Normas específicas',
+                        'Procedimentos',
+                        'Jurisprudência',
+                    ],
+                    correctAnswer: 0,
+                    explanation: `Baseado no conteúdo da página ${chunk.page} do arquivo ${chunk.file}.`,
+                    chunkId: chunk.id,
+                    difficulty: difficulty,
+                    sourceFile: chunk.file, // Adiciona sourceFile
+                };
+            }
         }
 
-        const randomSentence =
-            sentences[Math.floor(Math.random() * sentences.length)].trim();
-        const words = randomSentence.split(' ').filter((w) => w.length > 3);
+        // --- Adaptação para o novo formato com array 'explanations' ---
+        fallbackQuestion.explanations = fallbackQuestion.options.map(
+            (_, i) =>
+                i === fallbackQuestion.correctAnswer
+                    ? fallbackQuestion.explanation // Usa a explicação gerada para a correta
+                    : 'Explicação indisponível (Fallback).' // Genérico para as incorretas
+        );
+        delete fallbackQuestion.explanation; // Remove o campo antigo
 
-        if (words.length > 0) {
-            const keyWord = words[Math.floor(Math.random() * words.length)];
-            const question = `Complete a frase: "${randomSentence.replace(
-                keyWord,
-                '______'
-            )}"`;
-
-            const correctAnswer = keyWord;
-            const wrongOptions = this.generateWrongOptions(
-                correctAnswer,
-                chunk.file
-            );
-            const allOptions = [correctAnswer, ...wrongOptions].sort(
-                () => Math.random() - 0.5
-            );
-            const correctIndex = allOptions.indexOf(correctAnswer);
-
-            return {
-                id: `q${index}`,
-                question: question,
-                options: allOptions,
-                correctAnswer: correctIndex,
-                explanation: `A resposta correta é "${correctAnswer}" conforme o conteúdo da página ${chunk.page} do arquivo ${chunk.file}.`,
-                chunkId: chunk.id,
-                difficulty: difficulty,
-            };
-        }
-
-        return {
-            id: `q${index}`,
-            question: `Qual conceito está relacionado ao conteúdo da página ${chunk.page} do arquivo ${chunk.file}?`,
-            options: [
-                'Princípios gerais',
-                'Normas específicas',
-                'Procedimentos',
-                'Jurisprudência',
-            ],
-            correctAnswer: 0,
-            explanation: `Baseado no conteúdo da página ${chunk.page} do arquivo ${chunk.file}.`,
-            chunkId: chunk.id,
-            difficulty: difficulty,
-        };
+        return fallbackQuestion;
     }
 
+    // app.js - Dentro da classe QuizManager
     generateWrongOptions(correctAnswer, fileName) {
         const commonLegalTerms = [
             'constitucional',
@@ -6619,12 +7572,32 @@ Crie uma questão relevante e educativa:`;
             'defesa',
             'prova',
             'julgamento',
+            'deverá',
+            'poderá',
+            'será',
+            'é facultado',
+            'é vedado', // Termos comuns
+            'impedimento',
+            'suspeição',
+            'nulidade',
+            'anulabilidade', // Conceitos próximos
+            '5 dias',
+            '10 dias',
+            '15 dias',
+            '30 dias', // Prazos comuns
+            'reclusão',
+            'detenção',
+            'multa',
+            'advertência', // Penas
         ];
 
         const wrongOptions = [];
         const usedOptions = new Set([correctAnswer.toLowerCase()]);
 
-        while (wrongOptions.length < 3 && commonLegalTerms.length > 0) {
+        // Tenta gerar 3 opções distintas
+        let attempts = 0;
+        const maxAttempts = 20; // Limite para evitar loop infinito
+        while (wrongOptions.length < 3 && attempts < maxAttempts) {
             const randomTerm =
                 commonLegalTerms[
                     Math.floor(Math.random() * commonLegalTerms.length)
@@ -6633,10 +7606,19 @@ Crie uma questão relevante e educativa:`;
                 wrongOptions.push(randomTerm);
                 usedOptions.add(randomTerm.toLowerCase());
             }
+            attempts++;
         }
 
+        // Completa com placeholders se não conseguiu gerar 3 distintas
         while (wrongOptions.length < 3) {
-            wrongOptions.push(`Opção ${wrongOptions.length + 1}`);
+            const placeholder = `Opção Incorreta ${wrongOptions.length + 1}`;
+            if (!usedOptions.has(placeholder.toLowerCase())) {
+                wrongOptions.push(placeholder);
+                usedOptions.add(placeholder.toLowerCase());
+            } else {
+                // Adiciona número extra se placeholder já existir (altamente improvável)
+                wrongOptions.push(`${placeholder}-${Math.random()}`);
+            }
         }
 
         return wrongOptions;
@@ -6644,79 +7626,229 @@ Crie uma questão relevante e educativa:`;
 
     // app.js - Dentro da classe QuizManager
 
+    // app.js - Dentro da classe QuizManager
     submitAnswer(questionIndex, selectedOption) {
         if (
             !this.currentQuiz ||
             questionIndex >= this.currentQuiz.questions.length
         ) {
+            console.error(
+                '[Submit Answer] Tentativa de submeter resposta para índice inválido:',
+                questionIndex
+            );
             return false;
         }
 
-        const question = this.currentQuiz.questions[questionIndex];
-        const isCorrect = selectedOption === question.correctAnswer;
-
-        // --- INÍCIO DA CORREÇÃO CRÍTICA ---
-        // Verifica se a questão veio de um artigo e atualiza as estatísticas
-        if (question.articleId) {
-            console.log(
-                `[DEBUG] Atualizando estatísticas para o artigo ID: ${question.articleId}, Acerto: ${isCorrect}`
+        // Evita submissão múltipla, EXCETO se foi pulada (-1)
+        if (
+            this.userAnswers[questionIndex] !== undefined &&
+            this.userAnswers[questionIndex].selectedOption !== -1
+        ) {
+            console.warn(
+                '[Submit Answer] Questão já respondida:',
+                questionIndex
             );
-            updateArticleUsage(question.articleId, isCorrect);
+            // Retorna se a resposta anterior estava correta
+            return this.userAnswers[questionIndex].isCorrect;
         }
-        // --- FIM DA CORREÇÃO CRÍTICA ---
 
+        const question = this.currentQuiz.questions[questionIndex];
+        // Trata caso onde question pode ser undefined
+        if (!question) {
+            console.error(
+                '[Submit Answer] Objeto da questão não encontrado para o índice:',
+                questionIndex
+            );
+            return false;
+        }
+
+        const isCorrect = selectedOption === question.correctAnswer;
+        const timeSpent = Date.now() - (this.questionStartTime || Date.now());
+
+        // Guarda a resposta do usuário
         this.userAnswers[questionIndex] = {
             questionId: question.id,
             selectedOption: selectedOption,
             isCorrect: isCorrect,
-            timeSpent: Date.now() - (this.questionStartTime || Date.now()),
+            timeSpent: timeSpent,
+            // Armazena detalhes da questão AQUI para uso na revisão e histórico
+            questionData: {
+                // Guarda cópia dos dados relevantes
+                id: question.id, // Guarda o ID original da questão
+                question: question.question,
+                options: [...question.options], // Copia as opções
+                correctAnswerIndex: question.correctAnswer,
+                explanations: [...question.explanations], // Copia as explicações
+                articleReference: question.articleReference,
+                sourceFile: question.sourceFile,
+                difficulty: question.difficulty, // Se tiver dificuldade por questão
+            },
         };
 
-        if (isCorrect) {
-            this.score++;
+        // Atualiza estatísticas do artigo, se aplicável
+        if (question.articleId) {
+            console.log(
+                `[Stats Update] Atualizando estatísticas para Artigo ID: ${question.articleId}, Acerto: ${isCorrect}`
+            );
+            updateArticleUsage(question.articleId, isCorrect);
         }
 
+        // Adiciona à lista de erradas se necessário
+        if (!isCorrect && selectedOption !== -1) {
+            // Não adiciona se pulou
+            this.addWrongQuestion(question);
+        }
+        // Remove da lista de erradas se acertou (mesmo em modo de revisão de erradas)
+        else if (isCorrect) {
+            this.removeWrongQuestion(question.id);
+        }
+
+        console.log(
+            `[Submit Answer] Q${
+                questionIndex + 1
+            }: Selecionado ${selectedOption}, Correto ${
+                question.correctAnswer
+            }, Resultado: ${isCorrect}`
+        );
         return isCorrect;
     }
 
+    // app.js - Dentro da classe QuizManager
+    // SUBSTITUA a função finishQuiz INTEIRA por esta versão corrigida:
+
     finishQuiz() {
-        if (!this.currentQuiz) return null;
+        if (!this.currentQuiz) {
+            console.warn(
+                '[Finish Quiz] Tentativa de finalizar sem quiz ativo.'
+            );
+            return null;
+        }
 
         this.currentQuiz.endTime = new Date();
-        this.currentQuiz.score = this.score;
-        this.currentQuiz.userAnswers = this.userAnswers;
-        this.currentQuiz.percentage = Math.round(
-            (this.score / this.currentQuiz.questions.length) * 100
-        );
 
-        this.quizHistory.push(this.currentQuiz);
-        localStorage.setItem(
-            'lexia_quiz_history',
-            JSON.stringify(this.quizHistory)
-        );
+        // --- Cálculo da Pontuação (mantido) ---
+        const correctAnswersCount = this.userAnswers.filter(
+            (ans) => ans && ans.isCorrect
+        ).length;
+        this.currentQuiz.score = correctAnswersCount;
+        const totalQuestions = this.currentQuiz.questions.length;
+        this.currentQuiz.percentage =
+            totalQuestions > 0
+                ? Math.round((correctAnswersCount / totalQuestions) * 100)
+                : 0;
 
-        const today = new Date().toISOString().split('T')[0];
-        if (!lexiaProgress[today]) {
-            lexiaProgress[today] = {
-                flashcardsReviewed: 0,
-                quizzesCompleted: 0,
-                timeStudied: 0,
-            };
+        // --- Garante que userAnswers tenha os dados completos (mantido) ---
+        this.currentQuiz.userAnswers = this.userAnswers
+            .map((answer, index) => {
+                if (answer && !answer.questionData) {
+                    const question = this.currentQuiz.questions[index];
+                    if (question) {
+                        answer.questionData = {
+                            id: question.id,
+                            question: question.question,
+                            options: [...question.options],
+                            correctAnswerIndex: question.correctAnswer,
+                            explanations: [...question.explanations],
+                            articleReference: question.articleReference,
+                            sourceFile: question.sourceFile,
+                            difficulty: question.difficulty,
+                        };
+                    }
+                } else if (!answer) {
+                    const question = this.currentQuiz.questions[index];
+                    if (question) {
+                        return {
+                            questionId: question.id,
+                            selectedOption: -2, // Não respondida
+                            isCorrect: false,
+                            timeSpent: 0,
+                            questionData: {
+                                /* ... dados da questão ... */
+                            }, // Preencher como no código anterior
+                        };
+                    }
+                }
+                return answer;
+            })
+            .filter(Boolean);
+
+        // --- Tratamento da Dificuldade (mantido) ---
+        let displayDifficulty =
+            this.currentQuiz.config?.difficulty || 'Não definida';
+        // ... (lógica de formatação mantida como antes) ...
+        displayDifficulty =
+            displayDifficulty.charAt(0).toUpperCase() +
+            displayDifficulty.slice(1); // Simplificado
+        if (this.currentQuiz.isReview) {
+            // Adiciona prefixo se for revisão
+            displayDifficulty = `Revisão (${displayDifficulty})`;
         }
-        lexiaProgress[today].quizzesCompleted++;
-        localStorage.setItem('lexia_progress', JSON.stringify(lexiaProgress));
+        this.currentQuiz.displayDifficulty = displayDifficulty;
 
-        const result = { ...this.currentQuiz };
-        this.resetQuiz();
-        return result;
+        // =====>>> NOVA LÓGICA: NÃO SALVAR REVISÕES NO HISTÓRICO <<<=====
+        if (this.currentQuiz.isReview) {
+            console.log(
+                '[Finish Quiz] Sessão de REVISÃO finalizada. NÃO será salva no histórico principal.'
+            );
+
+            // Mesmo não salvando no histórico, AINDA salvamos a lista de questões erradas,
+            // pois acertar uma questão na revisão a remove dessa lista.
+            // O saveQuizData() lida com salvar histórico, banco E erradas.
+            // Precisamos salvar APENAS as erradas aqui.
+            localStorage.setItem(
+                'lexia_wrong_questions',
+                JSON.stringify(this.getWrongQuestionsList())
+            );
+            console.log(
+                '[Finish Quiz] Lista de questões erradas atualizada após revisão.'
+            );
+
+            // Prepara o objeto de resultado para o modal, mas não o adiciona ao histórico
+            const reviewResult = { ...this.currentQuiz };
+            console.log('[Finish Quiz] Resultado da revisão:', reviewResult);
+            // Não reseta o quiz aqui, o modal precisa dos dados
+            return reviewResult;
+        } else {
+            // --- Comportamento normal para quizzes NÃO-REVISÃO ---
+            console.log(
+                '[Finish Quiz] Quiz NORMAL finalizado. Adicionando ao histórico.'
+            );
+            this.quizHistory.push(this.currentQuiz);
+
+            // Atualiza progresso diário (APENAS para quizzes normais)
+            const today = new Date().toISOString().split('T')[0];
+            if (!lexiaProgress[today]) {
+                lexiaProgress[today] = {
+                    flashcardsReviewed: 0,
+                    quizzesCompleted: 0,
+                    timeStudied: 0,
+                };
+            }
+            lexiaProgress[today].quizzesCompleted++;
+            saveProgress();
+
+            // Salva TUDO (histórico, banco, erradas)
+            this.saveQuizData();
+
+            console.log(
+                '[Finish Quiz] Quiz normal finalizado e salvo:',
+                this.currentQuiz
+            );
+            const result = { ...this.currentQuiz };
+            // Não reseta aqui
+            return result;
+        }
+        // =============================================================
     }
 
+    // app.js - Dentro da classe QuizManager
     resetQuiz() {
         this.currentQuiz = null;
         this.currentQuestionIndex = 0;
-        this.score = 0;
+        this.score = 0; // Reset score here
         this.userAnswers = [];
         this.questionStartTime = null;
+        console.log('[Quiz Reset] Estado do quiz resetado.');
     }
 
     getAverageDifficulty() {
@@ -6735,54 +7867,104 @@ Crie uma questão relevante e educativa:`;
 
 // Adicione esta função antes da função renderQuiz()
 
+// app.js - Fora da classe QuizManager
 function renderAvailableArticles() {
+    const sourceFilter =
+        document.getElementById('source-filter')?.value || 'all';
+    console.log(
+        '[Render Articles] Filtrando artigos pela fonte:',
+        sourceFilter
+    );
     const allArticles = [];
 
-    // Coletar todos os artigos de todas as trilhas
+    // Coleta artigos, aplicando o filtro de fonte principal
     lexiaChunks.forEach((chunk) => {
-        if (chunk.legalArticles && chunk.legalArticles.length > 0) {
-            chunk.legalArticles.forEach((article) => {
-                allArticles.push({
-                    ...article,
-                    chunkId: chunk.id,
-                    fileName: chunk.file,
+        if (sourceFilter === 'all' || chunk.file === sourceFilter) {
+            if (chunk.legalArticles && chunk.legalArticles.length > 0) {
+                chunk.legalArticles.forEach((article) => {
+                    // Adiciona dados do chunk
+                    allArticles.push({
+                        ...article,
+                        chunkId: chunk.id,
+                        fileName: chunk.file,
+                        lawDisplayName:
+                            getTrackMetadata(chunk.file).displayName ||
+                            chunk.file, // Nome amigável da fonte
+                    });
                 });
-            });
+            }
         }
     });
 
-    if (allArticles.length === 0) {
-        return '<p class="no-articles">Nenhum artigo de lei disponível. Processe PDFs primeiro.</p>';
+    // Remove duplicatas (mesmo artigo pode estar em chunks diferentes da mesma fonte)
+    const uniqueArticles = allArticles.filter(
+        (article, index, self) =>
+            index === self.findIndex((a) => a.id === article.id)
+    );
+
+    if (uniqueArticles.length === 0) {
+        return `<p class="no-articles">Nenhum artigo encontrado para a fonte "${
+            sourceFilter === 'all'
+                ? 'Todas as Fontes'
+                : getTrackMetadata(sourceFilter).displayName || sourceFilter
+        }".</p>`;
     }
 
-    // Agrupar por lei/arquivo
-    const articlesByLaw = {};
-    allArticles.forEach((article) => {
-        const lawName = article.law || article.fileName;
-        if (!articlesByLaw[lawName]) {
-            articlesByLaw[lawName] = [];
+    // Agrupa por fonte (usando displayName)
+    const articlesBySource = {};
+    uniqueArticles.forEach((article) => {
+        const sourceName = article.lawDisplayName;
+        if (!articlesBySource[sourceName]) {
+            articlesBySource[sourceName] = {
+                fileName: article.fileName,
+                articles: [],
+            };
         }
-        articlesByLaw[lawName].push(article);
+        articlesBySource[sourceName].articles.push(article);
     });
 
-    return Object.entries(articlesByLaw)
-        .map(
-            ([lawName, articles]) => `
-            <div class="law-articles-group">
-                <div class="law-header">
-                    <h5>${lawName}</h5>
-                    <span class="article-count">${
-                        articles.length
+    // Ordena as fontes alfabeticamente pelo displayName
+    const sortedSources = Object.entries(articlesBySource).sort(
+        ([nameA], [nameB]) => nameA.localeCompare(nameB)
+    );
+
+    // Gera HTML com <details> para cada fonte
+    return sortedSources
+        .map(([sourceDisplayName, data], index) => {
+            // Ordena artigos dentro da fonte
+            data.articles.sort((a, b) => {
+                // Extrai números, tratando '1º', '313-A' etc.
+                const numA = parseInt(
+                    (a.number || '0').match(/\d+/)?.[0] || '0'
+                );
+                const numB = parseInt(
+                    (b.number || '0').match(/\d+/)?.[0] || '0'
+                );
+                if (numA !== numB) return numA - numB;
+                // Como desempate, usa a referência completa
+                return (a.fullReference || '').localeCompare(
+                    b.fullReference || ''
+                );
+            });
+
+            return `
+            <details class="track-selection-group article-source-group" ${
+                index === 0 ? 'open' : ''
+            }> 
+                <summary>
+                    <span class="source-name">${sourceDisplayName}</span>
+                    <span class="article-count-badge">${
+                        data.articles.length
                     } artigos</span>
-                </div>
+                </summary>
                 <div class="articles-checkbox-list">
-                    ${articles
+                    ${data.articles
                         .map(
                             (article) => `
                         <div class="article-checkbox-item">
                             <label>
-                                <input type="checkbox" 
-                                       class="article-selection-checkbox" 
+                                <input type="checkbox"
+                                       class="article-selection-checkbox"
                                        value="${article.id}"
                                        data-article-id="${article.id}">
                                 <span class="checkmark"></span>
@@ -6791,7 +7973,8 @@ function renderAvailableArticles() {
                                         article.fullReference
                                     }</strong>
                                     <p class="article-subject">${
-                                        article.subject
+                                        article.subject ||
+                                        'Assunto não definido'
                                     }</p>
                                     <span class="article-stats">
                                         ${
@@ -6812,130 +7995,238 @@ function renderAvailableArticles() {
                         )
                         .join('')}
                 </div>
-            </div>
-        `
-        )
+            </details>
+        `;
+        })
         .join('');
 }
 
-// Também adicione esta função auxiliar para configurar os event listeners
+// app.js - Fora da classe QuizManager
 function setupArticleSelectionListeners() {
-    const useSpecificArticles = document.getElementById(
-        'use-specific-articles'
+    const articlesSelectionContainer = document.getElementById(
+        'articles-selection-container'
     );
-    const articlesSelection = document.getElementById('articles-selection');
+    if (!articlesSelectionContainer) return;
+
     const articlesSearch = document.getElementById('articles-search');
     const selectAllBtn = document.getElementById('select-all-articles');
     const clearBtn = document.getElementById('clear-articles');
-    const selectedCount = document.getElementById('selected-articles-count');
+    const articlesListAccordion = document.getElementById('articles-list'); // Container do accordion
 
-    if (useSpecificArticles && articlesSelection) {
-        useSpecificArticles.addEventListener('change', function () {
-            articlesSelection.style.display = this.checked ? 'block' : 'none';
-            updateSelectedArticlesCount();
-        });
-    }
-
-    if (articlesSearch) {
+    // Listener de busca
+    if (articlesSearch && articlesListAccordion) {
         articlesSearch.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
-            const articles = document.querySelectorAll(
+            const searchTerm = this.value.toLowerCase().trim();
+            const allArticleItems = articlesListAccordion.querySelectorAll(
                 '.article-checkbox-item'
             );
+            const allSourceGroups = articlesListAccordion.querySelectorAll(
+                '.article-source-group'
+            );
 
-            articles.forEach((article) => {
-                const articleText = article.textContent.toLowerCase();
-                article.style.display = articleText.includes(searchTerm)
-                    ? 'block'
-                    : 'none';
+            allArticleItems.forEach((item) => {
+                const articleText = item.textContent.toLowerCase();
+                const matches =
+                    searchTerm === '' || articleText.includes(searchTerm);
+                item.style.display = matches ? 'flex' : 'none'; // Usa flex para manter layout
             });
+
+            // Mostrar/Esconder e Abrir/Fechar grupos de fontes
+            allSourceGroups.forEach((group) => {
+                const visibleItems = group.querySelectorAll(
+                    '.article-checkbox-item[style*="display: flex"], .article-checkbox-item:not([style*="display: none"])'
+                );
+                group.style.display =
+                    visibleItems.length > 0 ? 'block' : 'none';
+                // Abre automaticamente se busca ativa e tem resultados
+                if (searchTerm !== '' && visibleItems.length > 0) {
+                    group.open = true;
+                } else if (searchTerm === '' && group !== allSourceGroups[0]) {
+                    // Fecha outros se busca vazia (exceto o primeiro)
+                    group.open = false;
+                }
+            });
+            updateSelectedArticlesCount(); // Atualiza contagem após filtrar
         });
     }
 
-    if (selectAllBtn) {
+    // Listener Selecionar Todos Visíveis
+    if (selectAllBtn && articlesListAccordion) {
         selectAllBtn.addEventListener('click', function () {
-            document
+            articlesListAccordion
                 .querySelectorAll('.article-selection-checkbox')
                 .forEach((checkbox) => {
-                    checkbox.checked = true;
+                    if (
+                        checkbox.closest('.article-checkbox-item').style
+                            .display !== 'none'
+                    ) {
+                        checkbox.checked = true;
+                    }
                 });
             updateSelectedArticlesCount();
         });
     }
 
-    if (clearBtn) {
+    // Listener Limpar Seleção Visíveis
+    if (clearBtn && articlesListAccordion) {
         clearBtn.addEventListener('click', function () {
-            document
+            articlesListAccordion
                 .querySelectorAll('.article-selection-checkbox')
                 .forEach((checkbox) => {
-                    checkbox.checked = false;
+                    if (
+                        checkbox.closest('.article-checkbox-item').style
+                            .display !== 'none'
+                    ) {
+                        checkbox.checked = false;
+                    }
                 });
             updateSelectedArticlesCount();
         });
     }
 
-    // Atualizar contagem quando checkboxes são alterados
-    document.addEventListener('change', function (e) {
+    // Listener para mudança nos checkboxes (delegado ao container)
+    articlesListAccordion.addEventListener('change', function (e) {
         if (e.target.classList.contains('article-selection-checkbox')) {
             updateSelectedArticlesCount();
         }
     });
+
+    // Listener para comportamento do Accordion (Abrir um fecha os outros - delegado ao container)
+    articlesListAccordion.addEventListener(
+        'toggle',
+        (event) => {
+            const currentDetails = event.target;
+            // Garante que é um <details> dentro do accordion e que foi aberto
+            if (currentDetails.tagName === 'DETAILS' && currentDetails.open) {
+                articlesListAccordion
+                    .querySelectorAll('.article-source-group')
+                    .forEach((otherDetails) => {
+                        if (otherDetails !== currentDetails) {
+                            otherDetails.open = false;
+                        }
+                    });
+            }
+        },
+        true
+    ); // Usa captura para garantir que o evento de toggle seja pego
 }
 
+// app.js - Fora da classe QuizManager
 function updateSelectedArticlesCount() {
-    const selectedCount = document.getElementById('selected-articles-count');
-    if (selectedCount) {
-        const selected = document.querySelectorAll(
+    const selectedCountSpan = document.getElementById(
+        'selected-articles-count'
+    );
+    const articlesListContainer = document.getElementById('articles-list'); // Container onde os checkboxes estão
+    if (selectedCountSpan && articlesListContainer) {
+        // Conta apenas os checkboxes MARCADOS DENTRO do container da lista
+        const selected = articlesListContainer.querySelectorAll(
             '.article-selection-checkbox:checked'
         ).length;
-        selectedCount.textContent = `${selected} artigos selecionados`;
+        selectedCountSpan.textContent = `${selected} artigos selecionados`;
     }
 }
 
+// app.js - Fora da classe QuizManager
 function getSelectedArticles() {
     const selectedCheckboxes = document.querySelectorAll(
         '.article-selection-checkbox:checked'
     );
-    const allArticles = [];
-
-    // Coletar todos os artigos
-    lexiaChunks.forEach((chunk) => {
-        if (chunk.legalArticles && chunk.legalArticles.length > 0) {
-            chunk.legalArticles.forEach((article) => {
-                allArticles.push({
-                    ...article,
-                    chunkId: chunk.id,
-                    fileName: chunk.file,
-                });
-            });
-        }
-    });
+    const allArticles = getAllArticles(); // Usa a função auxiliar
 
     return Array.from(selectedCheckboxes)
         .map((checkbox) => {
+            // Encontra o artigo completo na lista de todos os artigos
             return allArticles.find((article) => article.id === checkbox.value);
         })
-        .filter(Boolean);
+        .filter(Boolean); // Remove nulos se algum não for encontrado
 }
 
 const quizManager = new QuizManager();
 
+// app.js - Fora da classe QuizManager
 function renderQuiz() {
     const quizArea = document.getElementById('quiz-area');
+    quizManager.resetQuiz(); // Reseta o estado ao entrar na tela de configuração
+    isPostQuizReviewMode = false; // Garante que não está em modo revisão
 
-    if (!quizManager.currentQuiz) {
-        const suggestedDifficulty = quizManager.getAverageDifficulty();
-        quizArea.innerHTML = `
-            <div class="quiz-start">
-                <h3>Configurar Novo Quiz</h3>
-                <p>Personalize seu quiz com opções avançadas para um estudo mais eficaz.</p>
-                
-                <div class="quiz-config">
+    const suggestedDifficulty = quizManager.getAverageDifficulty();
+    const uniqueSources = getUniqueChunkSources(); // Pega as fontes disponíveis
+    const historyFilterSource = quizArea.dataset.historyFilterSource || 'all'; // Pega filtro persistido
+
+    quizArea.innerHTML = `
+        <div class="quiz-start">
+            <h3>Quiz Adaptativo</h3>
+            <p>Configure seu quiz ou revise questões anteriores.</p>
+
+            
+            <div class="card quiz-stats-config">
+                <h4>📊 Estatísticas</h4>
+                <div class="stats-controls">
+                     <label for="stats-source-filter">Filtrar Fonte:</label>
+                     <select id="stats-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         historyFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                </div>
+                <div id="quiz-stats-display">
+                    ${renderQuizStats(historyFilterSource)} 
+                </div>
+            </div>
+
+            
+            <div class="card review-wrong-section">
+                <h4>❌ Revisar Questões Erradas</h4>
+                <p>Refaça as questões erradas para reforçar o aprendizado.</p>
+                <div class="review-wrong-controls">
+                     <label for="wrong-source-filter">Filtrar Fonte:</label>
+                     <select id="wrong-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         historyFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                    <button id="start-review-wrong-btn" class="btn btn-warning">
+                        Revisar Erradas (${
+                            quizManager.getWrongQuestionsList(
+                                historyFilterSource
+                            ).length
+                        })
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="card quiz-config-main">
+                 <h4>⚙️ Configurar Novo Quiz</h4>
+                 <div class="quiz-config">
+                    
                     <div class="config-section">
-                        <h4>Configurações Básicas</h4>
-                        <div class="config-row">
+                        <h5>Básicas</h5>
+                        <div class="form-group">
                             <label for="quiz-difficulty">Dificuldade:</label>
-                            <select id="quiz-difficulty">
+                            <select id="quiz-difficulty" class="form-control">
                                 <option value="easy" ${
                                     suggestedDifficulty === 'easy'
                                         ? 'selected'
@@ -6954,205 +8245,466 @@ function renderQuiz() {
                                 <option value="adaptive">Adaptativo</option>
                             </select>
                         </div>
-                        <div class="config-row">
-                            <label for="quiz-questions">Número de perguntas:</label>
-                            <select id="quiz-questions">
-                                <option value="5">5 perguntas</option>
-                                <option value="10" selected>10 perguntas</option>
-                                <option value="15">15 perguntas</option>
-                                <option value="20">20 perguntas</option>
+                        <div class="form-group">
+                            <label for="quiz-questions">Nº de Questões:</label>
+                            <select id="quiz-questions" class="form-control">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
                             </select>
                         </div>
-                    </div>
-                    
-                    <div class="config-section">
-                        <h4>Tipo de Questões</h4>
-                        <div class="config-row">
+                         <div class="form-group">
                             <label for="question-type">Formato:</label>
-                            <select id="question-type">
-                                <option value="multiple-choice">Múltipla Escolha</option>
-                                <option value="true-false">Verdadeiro ou Falso</option>
-                                <option value="essay">Dissertativa</option>
-                                <option value="mixed">Misto</option>
+                            <select id="question-type" class="form-control" disabled> 
+                                <option value="multiple-choice" selected>Múltipla Escolha</option>
                             </select>
                         </div>
-                        <div class="config-row">
-                            <label for="num-options">Alternativas (múltipla escolha):</label>
-                            <select id="num-options">
-                                <option value="3">3 alternativas</option>
-                                <option value="4" selected>4 alternativas</option>
-                                <option value="5">5 alternativas</option>
+                        <div class="form-group">
+                            <label for="num-options">Alternativas:</label>
+                            <select id="num-options" class="form-control">
+                                 <option value="4">4</option>
+                                 <option value="5" selected>5</option>
                             </select>
                         </div>
                     </div>
+
                     
                     <div class="config-section">
-                        <h4>Abordagem do Conteúdo</h4>
-                        <div class="config-row">
+                        <h5>Conteúdo</h5>
+                         <div class="form-group">
                             <label for="content-focus">Foco:</label>
-                            <select id="content-focus">
+                            <select id="content-focus" class="form-control">
                                 <option value="general">Geral</option>
                                 <option value="laws">Específico - Leis</option>
                                 <option value="concepts">Específico - Conceitos</option>
                                 <option value="procedures">Específico - Procedimentos</option>
-                                <option value="jurisprudence">Específico - Jurisprudência</option>
                             </select>
                         </div>
-                        <div class="config-row">
-                            <label for="source-filter">Filtrar por fonte:</label>
-                            <select id="source-filter">
-                                <option value="all">Todas as fontes</option>
-                                ${getUniqueChunkSources()
+                        <div class="form-group">
+                            <label for="source-filter">Fonte (PDF):</label>
+                            <select id="source-filter" class="form-control">
+                                <option value="all">Todas as Fontes (Aleatório)</option>
+                                ${uniqueSources
                                     .map(
                                         (source) =>
-                                            `<option value="${source}">${source}</option>`
+                                            `<option value="${source}">${
+                                                getTrackMetadata(source)
+                                                    .displayName || source
+                                            }</option>`
                                     )
                                     .join('')}
                             </select>
                         </div>
-                    </div>
-                    
-                    <div class="config-section">
-                        <h4>⚖️ Seleção de Artigos de Lei</h4>
-                        <div class="config-row">
-                            <label>
+                         <div class="form-group">
+                             <label class="config-checkbox">
                                 <input type="checkbox" id="use-specific-articles">
-                                Gerar questões baseadas em artigos específicos
+                                <span class="label-text">Usar Artigos Específicos</span>
                             </label>
                         </div>
-                        <div id="articles-selection" class="articles-selection" style="display: none;">
-                            <div class="articles-filter">
-                                <input type="text" id="articles-search" placeholder="Buscar artigos (ex: Art. 312, CP, etc.)">
-                                <div class="articles-actions">
-                                    <button type="button" id="select-all-articles" class="btn-small">Selecionar Todos</button>
-                                    <button type="button" id="clear-articles" class="btn-small">Limpar Seleção</button>
-                                </div>
-                            </div>
-                            <div id="articles-list" class="articles-list">
-                                ${renderAvailableArticles()}
-                            </div>
-                            <div class="selected-articles-summary">
-                                <span id="selected-articles-count">0 artigos selecionados</span>
-                            </div>
-                        </div>
                     </div>
-                    
+
+                   
                     <div class="config-section">
-                        <h4>Opções Avançadas</h4>
-                        <div class="config-checkbox">
-                            <input type="checkbox" id="include-tricks" checked>
-                            <label for="include-tricks">Incluir pegadinhas</label>
+                         <h5>Avançadas</h5>
+                        <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="include-tricks" checked>
+                                <span class="label-text">Incluir "pegadinhas"</span>
+                            </label>
                         </div>
-                        <div class="config-checkbox">
-                            <input type="checkbox" id="contextual-questions" checked>
-                            <label for="contextual-questions">Questões contextualizadas</label>
+                         <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="contextual-questions" checked>
+                                <span class="label-text">Questões Contextualizadas</span>
+                            </label>
                         </div>
-                        <div class="config-checkbox">
-                            <input type="checkbox" id="time-limit">
-                            <label for="time-limit">Limite de tempo (30 seg/questão)</label>
-                        </div>
-                        <div class="config-checkbox">
-                            <input type="checkbox" id="review-wrong" checked>
-                            <label for="review-wrong">Revisar questões erradas ao final</label>
+                         <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="review-wrong" checked>
+                                <span class="label-text">Revisar erradas ao final (Pós-Quiz)</span>
+                            </label>
                         </div>
                     </div>
                 </div>
+
                 
-                <div class="quiz-actions">
-                    <button id="start-quiz-btn" class="btn-primary">Iniciar Quiz</button>
-                    <button id="quick-quiz-btn" class="btn-secondary">Quiz Rápido (5 questões)</button>
+                <div id="articles-selection-container" class="articles-selection-container card" style="display: none;">
+                     <h5>⚖️ Selecionar Artigos Específicos</h5>
+                     <p>Escolha os artigos base para as questões. A lista abaixo é filtrada pela fonte selecionada acima.</p>
+                     <div class="articles-filter">
+                         <input type="text" id="articles-search" class="form-control" placeholder="Buscar artigos...">
+                         <div class="articles-actions">
+                             <button type="button" id="select-all-articles" class="btn btn-secondary btn-small">Marcar Visíveis</button>
+                             <button type="button" id="clear-articles" class="btn btn-secondary btn-small">Desmarcar Visíveis</button>
+                         </div>
+                     </div>
+                     <div id="articles-list" class="articles-list-accordion">
+                         
+                     </div>
+                     <div class="selected-articles-summary">
+                         <span id="selected-articles-count">0 artigos selecionados</span>
+                     </div>
+                 </div>
+
+                 
+                 <div class="quiz-actions main-actions">
+                    <button id="start-quiz-btn" class="btn btn-primary">🚀 Iniciar Quiz Personalizado</button>
+                    <button id="quick-quiz-btn" class="btn btn-secondary">⚡ Quiz Rápido (5 Aleatórias)</button>
+                     ${
+                         quizManager.questionBank.length > 0
+                             ? `
+                        <button id="use-question-bank" class="btn btn-secondary">🏦 Usar Banco (${quizManager.questionBank.length})</button>
+                     `
+                             : ''
+                     }
                 </div>
-                
-                <div class="quiz-history">
-                    <h4>Histórico Recente</h4>
-                    ${renderQuizHistory()}
-                </div>
-                
-                <div class="quiz-stats">
-                    <h4>Estatísticas</h4>
-                    ${renderQuizStats()}
-                </div>
-                
-                ${
-                    quizManager.questionBank.length > 0
-                        ? `
-                <div class="question-bank">
-                    <h4>Banco de Questões (${quizManager.questionBank.length})</h4>
-                    <p>Questões geradas a partir de artigos de lei específicos.</p>
-                    <button id="use-question-bank" class="btn-secondary">Usar Questões do Banco</button>
-                </div>
-                `
-                        : ''
-                }
             </div>
-        `;
 
-        document
-            .getElementById('start-quiz-btn')
-            .addEventListener('click', async () => {
-                const config = getQuizConfig();
-                const quiz = await quizManager.generateQuiz(config);
-                if (quiz) {
-                    quizManager.questionStartTime = Date.now();
-                    renderCurrentQuestion();
+
+           
+            <div class="card quiz-history-section">
+                <h4>📜 Histórico Recente</h4>
+                 <div class="history-controls">
+                     <label for="history-source-filter">Filtrar Fonte:</label>
+                     <select id="history-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         historyFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                </div>
+                <div id="quiz-history-list">
+                    ${renderQuizHistory(historyFilterSource)} 
+                </div>
+            </div>
+        </div>
+    `;
+
+    // --- Adicionar Listeners ---
+    document
+        .getElementById('start-quiz-btn')
+        .addEventListener('click', async () => {
+            const config = getQuizConfig();
+            if (
+                config.useSpecificArticles &&
+                config.selectedArticles.length === 0
+            ) {
+                alert(
+                    "Selecione 'Usar Artigos Específicos' e escolha os artigos, ou desmarque a opção para usar artigos aleatórios da fonte selecionada."
+                );
+                return;
+            }
+            if (
+                config.selectedArticles.length > config.numQuestions &&
+                config.useSpecificArticles
+            ) {
+                if (
+                    !confirm(
+                        `Você selecionou ${config.selectedArticles.length} artigos, mas o quiz terá apenas ${config.numQuestions} questões. Deseja continuar selecionando aleatoriamente ${config.numQuestions} destes artigos?`
+                    )
+                ) {
+                    return;
                 }
-            });
+                // Embaralha e corta a lista de artigos selecionados se forem mais que o número de questões
+                config.selectedArticles = [...config.selectedArticles]
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, config.numQuestions);
+            }
 
-        document
-            .getElementById('quick-quiz-btn')
-            .addEventListener('click', async () => {
-                const quickConfig = {
-                    difficulty: 'medium',
-                    numQuestions: 5,
-                    questionType: 'multiple-choice',
-                    numOptions: 4,
-                    contentFocus: 'general',
-                    sourceFilter: 'all',
-                    includeTricks: false,
-                    contextual: true,
-                    timeLimit: false,
-                    reviewWrong: true,
-                };
-                const quiz = await quizManager.generateQuiz(quickConfig);
-                if (quiz) {
-                    quizManager.questionStartTime = Date.now();
-                    renderCurrentQuestion();
-                }
-            });
-
-        // Add event listener for question bank button if it exists
-        const questionBankBtn = document.getElementById('use-question-bank');
-        if (questionBankBtn) {
-            questionBankBtn.addEventListener('click', () => {
-                quizManager.startQuizFromBank();
+            showLoadingIndicator('Gerando seu quiz personalizado...');
+            const quiz = await quizManager.generateQuiz(config);
+            hideLoadingIndicator();
+            if (quiz) {
+                quizManager.questionStartTime = Date.now();
                 renderCurrentQuestion();
-            });
-        }
+            } else {
+                renderQuiz(); // Volta para config se a geração falhar
+            }
+        });
 
-        // Add event listeners for article selection functionality
-        setupArticleSelectionListeners();
-    } else {
-        renderCurrentQuestion();
+    document
+        .getElementById('quick-quiz-btn')
+        .addEventListener('click', async () => {
+            const allArticles = getAllArticles(); // Precisa da função getAllArticles
+            if (allArticles.length === 0) {
+                alert(
+                    'Nenhum artigo de lei processado. Carregue PDFs primeiro.'
+                );
+                return;
+            }
+            // Garante que não seleciona mais artigos do que existem
+            const numQuickQuestions = Math.min(5, allArticles.length);
+            const randomArticles = [...allArticles]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, numQuickQuestions);
+
+            const quickConfig = {
+                difficulty: 'adaptive', // Sempre adaptativo
+                numQuestions: numQuickQuestions, // Usa o número ajustado
+                questionType: 'multiple-choice',
+                numOptions: 5, // Usar 5 opções
+                contentFocus: 'general',
+                sourceFilter: 'all', // Sempre pega de todas as fontes
+                includeTricks: true, // Incluir pegadinhas
+                contextual: true,
+                timeLimit: false,
+                reviewWrong: true,
+                useSpecificArticles: true, // Força usar os artigos selecionados
+                selectedArticles: randomArticles, // Passa os artigos aleatórios
+            };
+            showLoadingIndicator('Gerando quiz rápido...');
+            const quiz = await quizManager.generateQuiz(quickConfig); // Chama a geração
+            hideLoadingIndicator();
+            if (quiz) {
+                quizManager.questionStartTime = Date.now();
+                renderCurrentQuestion();
+            } else {
+                renderQuiz();
+            }
+        });
+
+    const bankBtn = document.getElementById('use-question-bank');
+    if (bankBtn) {
+        bankBtn.addEventListener('click', () => {
+            const quiz = quizManager.startQuizFromBank();
+            if (quiz) renderCurrentQuestion();
+        });
     }
+
+    const reviewWrongBtn = document.getElementById('start-review-wrong-btn');
+    if (reviewWrongBtn) {
+        reviewWrongBtn.addEventListener('click', () => {
+            const sourceFilter = document.getElementById(
+                'wrong-source-filter'
+            ).value;
+            startReviewAllWrong(sourceFilter);
+        });
+        // Atualiza contagem inicial do botão de erradas
+        reviewWrongBtn.textContent = `Revisar Erradas (${
+            quizManager.getWrongQuestionsList(historyFilterSource).length
+        })`;
+    }
+
+    const sourceFilterSelect = document.getElementById('source-filter');
+    const historyFilter = document.getElementById('history-source-filter');
+    const wrongFilter = document.getElementById('wrong-source-filter');
+    const statsFilter = document.getElementById('stats-source-filter');
+
+    // Listener para o filtro principal de fonte (para seleção de artigos)
+    if (sourceFilterSelect) {
+        sourceFilterSelect.addEventListener('change', () => {
+            const articlesListDiv = document.getElementById('articles-list');
+            if (articlesListDiv) {
+                articlesListDiv.innerHTML = renderAvailableArticles(); // Re-renderiza a lista filtrada
+                updateSelectedArticlesCount(); // Zera a contagem visual
+            }
+        });
+        // Renderiza a lista inicial baseada no valor padrão ('all') ou no filtro persistido
+        const currentSourceFilter = sourceFilterSelect.value;
+        document.getElementById('articles-list').innerHTML =
+            renderAvailableArticles();
+    }
+
+    // Listener para o checkbox de usar artigos específicos
+    const useSpecificCheckbox = document.getElementById(
+        'use-specific-articles'
+    );
+    if (useSpecificCheckbox) {
+        useSpecificCheckbox.addEventListener('change', function () {
+            const container = document.getElementById(
+                'articles-selection-container'
+            );
+            if (container) {
+                container.style.display = this.checked ? 'block' : 'none';
+                // Re-renderiza a lista de artigos se a opção for marcada, para garantir que está filtrada corretamente
+                if (this.checked) {
+                    document.getElementById('articles-list').innerHTML =
+                        renderAvailableArticles();
+                }
+                updateSelectedArticlesCount(); // Atualiza contagem
+            }
+        });
+        // Estado inicial
+        document.getElementById('articles-selection-container').style.display =
+            useSpecificCheckbox.checked ? 'block' : 'none';
+        if (useSpecificCheckbox.checked) {
+            document.getElementById('articles-list').innerHTML =
+                renderAvailableArticles();
+        }
+    }
+
+    // Função para sincronizar filtros e atualizar seções
+    const syncFiltersAndUpdateSections = (changedFilterId) => {
+        const changedFilter = document.getElementById(changedFilterId);
+        if (!changedFilter) return;
+        const selectedSource = changedFilter.value;
+        quizArea.dataset.historyFilterSource = selectedSource; // Persiste
+
+        // Sincroniza os outros selects
+        [statsFilter, historyFilter, wrongFilter].forEach((filterSelect) => {
+            if (filterSelect && filterSelect.id !== changedFilterId) {
+                filterSelect.value = selectedSource;
+            }
+        });
+
+        // Atualiza as seções
+        const statsDisplay = document.getElementById('quiz-stats-display');
+        const historyList = document.getElementById('quiz-history-list');
+        const reviewWrongBtn = document.getElementById(
+            'start-review-wrong-btn'
+        );
+
+        if (statsDisplay)
+            statsDisplay.innerHTML = renderQuizStats(selectedSource);
+        if (historyList)
+            historyList.innerHTML = renderQuizHistory(selectedSource);
+        if (reviewWrongBtn)
+            reviewWrongBtn.textContent = `Revisar Erradas (${
+                quizManager.getWrongQuestionsList(selectedSource).length
+            })`;
+
+        // Adiciona listeners aos botões "Refazer" recém-criados no histórico
+        setupHistoryReviewButtons();
+    };
+
+    // Adiciona listeners aos filtros de Stats, History e Wrong Questions
+    [statsFilter, historyFilter, wrongFilter].forEach((filterSelect) => {
+        if (filterSelect) {
+            filterSelect.addEventListener('change', (e) =>
+                syncFiltersAndUpdateSections(e.target.id)
+            );
+            // Restaura valor inicial
+            filterSelect.value = historyFilterSource;
+        }
+    });
+
+    // Configura listeners da lista de artigos e botões "Refazer" iniciais
+    setupArticleSelectionListeners();
+    setupHistoryReviewButtons(); // Chama para os botões iniciais do histórico
+    updateSelectedArticlesCount(); // Atualiza contagem inicial
 }
 
+// app.js - Fora da classe QuizManager
+// ADICIONE ou CERTIFIQUE-SE QUE ESTA FUNÇÃO EXISTE NO ESCOPO GLOBAL:
+function startReviewAllWrong(sourceFilter = 'all') {
+    console.log(
+        `[Review All Wrong] Iniciando revisão. Filtro: ${sourceFilter}`
+    ); // Log
+    const wrongQuestions = quizManager.getWrongQuestionsList(sourceFilter);
+
+    if (wrongQuestions.length === 0) {
+        const sourceName =
+            sourceFilter === 'all'
+                ? 'geral'
+                : getTrackMetadata(sourceFilter)?.displayName || sourceFilter; // Leitura segura
+        alert(`Nenhuma questão errada encontrada no filtro "${sourceName}".`);
+        return;
+    }
+
+    console.log(
+        `[Review All Wrong] ${wrongQuestions.length} questões erradas encontradas.`
+    ); // Log
+
+    // Inicia um novo quiz com as questões erradas
+    quizManager.currentQuiz = {
+        id: `review-all-wrong-${Date.now()}`,
+        questions: wrongQuestions.sort(() => Math.random() - 0.5), // Embaralha
+        config: { reviewMode: true, sourceFilter, filterWrong: true }, // Config especial
+        startTime: new Date(),
+        endTime: null,
+        score: 0,
+        userAnswers: [],
+        displayDifficulty: `Revisão Geral (Erradas)`,
+        isReview: true, // Flag de revisão
+        isReviewAllWrong: true, // Flag específica deste modo
+    };
+
+    quizManager.currentQuestionIndex = 0;
+    quizManager.userAnswers = new Array(
+        quizManager.currentQuiz.questions.length
+    ).fill(undefined);
+    quizManager.questionStartTime = Date.now();
+
+    console.log(`[Review All Wrong] Chamando renderCurrentQuestion...`); // Log
+    renderCurrentQuestion();
+}
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função getQuizConfig INTEIRA por esta:
 function getQuizConfig() {
-    const useSpecificArticles = document.getElementById(
-        'use-specific-articles'
-    ).checked;
+    // Flag para indicar se a seção de artigos específicos está visível e marcada
+    const useSpecificElement = document.getElementById('use-specific-articles');
+    // Leitura segura: verifica se o elemento existe antes de ler 'checked', default é false
+    const useSpecificArticles = useSpecificElement
+        ? useSpecificElement.checked
+        : false;
+
+    // Obtém artigos selecionados SOMENTE se a opção estiver marcada
     const selectedArticles = useSpecificArticles ? getSelectedArticles() : [];
 
+    // Leitura segura dos valores dos selects e checkboxes com valores padrão
+    const difficulty =
+        document.getElementById('quiz-difficulty')?.value || 'medium';
+    const numQuestionsValue = document.getElementById('quiz-questions')?.value;
+    const numQuestions = numQuestionsValue ? parseInt(numQuestionsValue) : 10;
+    const questionType =
+        document.getElementById('question-type')?.value || 'multiple-choice';
+    const numOptionsValue = document.getElementById('num-options')?.value;
+    const numOptions = numOptionsValue ? parseInt(numOptionsValue) : 5;
+    const contentFocus =
+        document.getElementById('content-focus')?.value || 'general';
+    const sourceFilter =
+        document.getElementById('source-filter')?.value || 'all';
+
+    const includeTricksElement = document.getElementById('include-tricks');
+    const includeTricks = includeTricksElement
+        ? includeTricksElement.checked
+        : true; // Default true
+
+    const contextualElement = document.getElementById('contextual-questions');
+    const contextual = contextualElement ? contextualElement.checked : true; // Default true
+
+    const reviewWrongElement = document.getElementById('review-wrong');
+    const reviewWrong = reviewWrongElement ? reviewWrongElement.checked : true; // Default true
+
+    // Log para depuração (pode remover após confirmar que funciona)
+    console.log('[getQuizConfig] Configurações lidas:', {
+        difficulty,
+        numQuestions,
+        questionType,
+        numOptions,
+        contentFocus,
+        sourceFilter,
+        includeTricks,
+        contextual,
+        reviewWrong,
+        useSpecificArticles,
+        selectedArticlesLength: selectedArticles.length,
+    });
+
+    // Retorna o objeto de configuração
     return {
-        difficulty: document.getElementById('quiz-difficulty').value,
-        numQuestions: parseInt(document.getElementById('quiz-questions').value),
-        questionType: document.getElementById('question-type').value,
-        numOptions: parseInt(document.getElementById('num-options').value),
-        contentFocus: document.getElementById('content-focus').value,
-        sourceFilter: document.getElementById('source-filter').value,
-        includeTricks: document.getElementById('include-tricks').checked,
-        contextual: document.getElementById('contextual-questions').checked,
-        timeLimit: document.getElementById('time-limit').checked,
-        reviewWrong: document.getElementById('review-wrong').checked,
+        difficulty: difficulty,
+        numQuestions: numQuestions,
+        questionType: questionType,
+        numOptions: numOptions,
+        contentFocus: contentFocus,
+        sourceFilter: sourceFilter,
+        includeTricks: includeTricks,
+        contextual: contextual,
+        timeLimit: false, // Mantém false
+        reviewWrong: reviewWrong,
         useSpecificArticles: useSpecificArticles,
         selectedArticles: selectedArticles,
     };
@@ -7166,214 +8718,1353 @@ function getUniqueChunkSources() {
     return Array.from(sources);
 }
 
-function renderQuizStats() {
-    const totalQuizzes = quizManager.quizHistory.length;
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderQuizStats INTEIRA por esta:
+function renderQuizStats(sourceFilter = 'all') {
+    // Filtra o histórico ANTES de calcular as estatísticas
+    const filteredHistory = quizManager.quizHistory.filter((quiz) => {
+        if (sourceFilter === 'all') return true;
+        // Verifica se o filtro de fonte foi usado na config OU se alguma questão veio dessa fonte
+        return (
+            quiz.config?.sourceFilter === sourceFilter ||
+            quiz.questions?.some((q) => q.sourceFile === sourceFilter)
+        );
+    });
+
+    const totalQuizzes = filteredHistory.length;
     if (totalQuizzes === 0) {
-        return '<p>Nenhum quiz realizado ainda.</p>';
+        return '<p class="no-stats">Nenhum quiz realizado para esta fonte ainda.</p>';
     }
 
-    const averageScore =
-        quizManager.quizHistory.reduce(
-            (sum, quiz) => sum + quiz.percentage,
-            0
-        ) / totalQuizzes;
-    const bestScore = Math.max(
-        ...quizManager.quizHistory.map((quiz) => quiz.percentage)
-    );
-    const totalQuestions = quizManager.quizHistory.reduce(
-        (sum, quiz) => sum + quiz.questions.length,
+    // Calcula totais com segurança, tratando 'undefined' ou 'null'
+    const totalQuestions = filteredHistory.reduce(
+        (sum, quiz) => sum + (quiz.questions?.length || 0),
         0
     );
+    const correctAnswers = filteredHistory.reduce(
+        (sum, quiz) => sum + (quiz.score || 0),
+        0
+    );
+    const incorrectAnswers = totalQuestions - correctAnswers; // Calcula erros
+    const averageScore =
+        totalQuizzes > 0
+            ? filteredHistory.reduce(
+                  (sum, quiz) => sum + (quiz.percentage || 0),
+                  0
+              ) / totalQuizzes
+            : 0;
+    const bestScore =
+        totalQuizzes > 0
+            ? Math.max(
+                  0,
+                  ...filteredHistory.map((quiz) => quiz.percentage || 0)
+              )
+            : 0;
+    const accuracy =
+        totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
     return `
         <div class="stats-grid">
             <div class="stat-item">
-                <span class="stat-label">Quizzes Realizados:</span>
+                <span class="stat-label">Quizzes:</span>
                 <span class="stat-value">${totalQuizzes}</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Média Geral:</span>
                 <span class="stat-value">${averageScore.toFixed(1)}%</span>
             </div>
-            <div class="stat-item">
+             <div class="stat-item">
                 <span class="stat-label">Melhor Score:</span>
                 <span class="stat-value">${bestScore}%</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Total de Questões:</span>
+             <div class="stat-item">
+                <span class="stat-label">Total Questões:</span>
                 <span class="stat-value">${totalQuestions}</span>
+            </div>
+             <div class="stat-item">
+                <span class="stat-label">✅ Acertos:</span>
+                <span class="stat-value">${correctAnswers}</span>
+            </div>
+             <div class="stat-item">
+                <span class="stat-label">❌ Erros:</span> 
+                <span class="stat-value">${incorrectAnswers}</span> 
+            </div>
+             <div class="stat-item">
+                <span class="stat-label">Precisão:</span>
+                <span class="stat-value">${accuracy.toFixed(1)}%</span>
             </div>
         </div>
     `;
 }
 
-function renderCurrentQuestion() {
+// app.js - SUBSTITUA a função renderCurrentQuestion INTEIRA por esta:
+
+// Flag global (ou propriedade no QuizManager) para indicar modo de revisão pós-quiz
+let isPostQuizReviewMode = false;
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderCurrentQuestion INTEIRA por esta versão atualizada:
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderCurrentQuestion INTEIRA por esta versão atualizada:
+
+function renderCurrentQuestion(reviewIndex = null) {
     const quizArea = document.getElementById('quiz-area');
     const quiz = quizManager.currentQuiz;
-    const questionIndex = quizManager.currentQuestionIndex;
-    const question = quiz.questions[questionIndex];
+    const questionIndex =
+        reviewIndex !== null ? reviewIndex : quizManager.currentQuestionIndex;
 
-    if (questionIndex >= quiz.questions.length) {
-        const result = quizManager.finishQuiz();
-        renderQuizResults(result);
+    // --- Verificações de Estado ---
+    if (!quiz || !quiz.questions || questionIndex < 0) {
+        console.error(
+            '[Render Quiz] Estado inválido ou índice fora dos limites.',
+            { quiz, questionIndex }
+        );
+        renderQuiz();
+        isPostQuizReviewMode = false;
         return;
     }
 
+    // --- Fim do Quiz ou Fim da Revisão ---
+    if (questionIndex >= quiz.questions.length) {
+        if (isPostQuizReviewMode) {
+            const finishedQuizData = quizManager.currentQuiz;
+            showQuizResultsModal(finishedQuizData);
+            isPostQuizReviewMode = false;
+        } else {
+            const result = quizManager.finishQuiz();
+            showQuizResultsModal(result);
+        }
+        return;
+    }
+
+    // --- Renderização da Questão (Ativa ou Revisão) ---
+    const question = quiz.questions[questionIndex];
+    const userAnswerData = quizManager.userAnswers[questionIndex];
+    const isAnswered = userAnswerData !== undefined;
+    const isSkipped = isAnswered && userAnswerData.selectedOption === -1;
+    const isDisplayingAnswer =
+        isPostQuizReviewMode || (isAnswered && !isSkipped);
+
+    // --- Montagem do HTML ---
     quizArea.innerHTML = `
-        <div class="quiz-question">
+        <div class="quiz-question ${isPostQuizReviewMode ? 'review-mode' : ''}">
             <div class="quiz-progress">
-                <p>Pergunta ${questionIndex + 1} de ${quiz.questions.length}</p>
+                <p>
+                    ${isPostQuizReviewMode ? 'Revisando' : 'Pergunta'} ${
+        questionIndex + 1
+    } de ${quiz.questions.length}
+                </p>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${
-                        (questionIndex / quiz.questions.length) * 100
+                        ((questionIndex + 1) / quiz.questions.length) * 100
                     }%"></div>
                 </div>
             </div>
+
             <h3>${question.question}</h3>
-            <ul class="quiz-options">
+
+            <ul class="quiz-options ${isDisplayingAnswer ? 'answered' : ''}">
                 ${question.options
-                    .map(
-                        (option, index) =>
-                            `<li data-option="${index}">${option}</li>`
-                    )
+                    .map((option, index) => {
+                        const letter = String.fromCharCode(65 + index);
+                        let liClasses = '';
+                        let explanationHTML = '';
+                        // ===== BOTÃO DESCARTAR MOVIDO PARA FORA DO CONTENT =====
+                        const discardButtonHTML = !isDisplayingAnswer
+                            ? `<button class="btn-icon discard-option-btn" data-option-index="${index}" title="Descartar esta alternativa">
+                                 ✂️
+                               </button>`
+                            : '';
+                        // =======================================================
+
+                        if (isDisplayingAnswer) {
+                            liClasses += ' answered';
+                            if (index === question.correctAnswer) {
+                                liClasses += ' correct';
+                            } else if (
+                                userAnswerData &&
+                                index === userAnswerData.selectedOption
+                            ) {
+                                liClasses += ' incorrect user-selected';
+                            }
+                            if (
+                                userAnswerData &&
+                                index === userAnswerData.selectedOption
+                            ) {
+                                liClasses += ' user-selected';
+                            }
+
+                            const explanationText =
+                                question.explanations?.[index] ||
+                                'Explicação indisponível.';
+                            explanationHTML = `
+                                <div class="option-explanation ${
+                                    index === question.correctAnswer
+                                        ? 'explanation-correct'
+                                        : 'explanation-incorrect'
+                                }">
+                                    <p>${explanationText.replace(
+                                        /\n/g,
+                                        '<br>'
+                                    )}</p>
+                                </div>
+                            `;
+                        }
+
+                        // Renderiza LI -> Botão Descartar -> Div Conteúdo -> Div Explicação
+                        return `<li data-option="${index}" class="${liClasses.trim()}">
+            ${discardButtonHTML} 
+            <div class="option-content">
+                <span class="option-letter">${letter})</span>
+                <span class="option-text">${option}</span>
+            </div>
+            ${explanationHTML}
+        </li>`;
+                    })
                     .join('')}
             </ul>
+
             <div class="quiz-controls">
-                <button id="submit-answer" disabled>Responder</button>
-                <button id="skip-question">Pular</button>
+                <button id="prev-question" class="btn btn-secondary" ${
+                    questionIndex === 0 ? 'disabled' : ''
+                }>
+                    ${isPostQuizReviewMode ? '← Revisão Anterior' : '← Voltar'}
+                </button>
+
+                ${
+                    !isDisplayingAnswer // Se NÃO está em modo revisão (ou seja, está ativa ou foi pulada)
+                        ? `
+                    <button id="submit-answer" class="btn btn-primary" disabled>Responder</button>
+                    <button id="skip-question" class="btn btn-secondary">Pular</button>
+                    `
+                        : `
+                    <button id="next-question" class="btn btn-primary">
+                      ${
+                          isPostQuizReviewMode
+                              ? 'Próxima Revisão →'
+                              : 'Próxima →'
+                      }
+                    </button>
+                    `
+                }
             </div>
         </div>
     `;
 
+    // --- Adição de Event Listeners ---
     let selectedOption = null;
+    const optionsList = quizArea.querySelector('.quiz-options'); // Seleciona a lista UL
 
-    document.querySelectorAll('.quiz-options li').forEach((option) => {
-        option.addEventListener('click', () => {
-            document
-                .querySelectorAll('.quiz-options li')
-                .forEach((opt) => opt.classList.remove('selected'));
-            option.classList.add('selected');
-            selectedOption = parseInt(option.dataset.option);
-            document.getElementById('submit-answer').disabled = false;
+    // Listeners para MODO ATIVO (permite selecionar e responder)
+    if (!isDisplayingAnswer && optionsList) {
+        optionsList.addEventListener('click', (event) => {
+            const target = event.target;
+
+            // --- Lógica para o botão Descartar ---
+            const discardButton = target.closest('.discard-option-btn');
+            if (discardButton) {
+                event.stopPropagation(); // Impede que o clique no botão selecione a opção
+                const optionIndex = discardButton.dataset.optionIndex;
+                const listItem = discardButton.closest('li');
+                if (listItem) {
+                    listItem.classList.toggle('option-discarded');
+                    if (listItem.classList.contains('option-discarded')) {
+                        listItem.classList.remove('selected');
+                        if (selectedOption === parseInt(optionIndex)) {
+                            selectedOption = null;
+                            const submitBtn =
+                                document.getElementById('submit-answer');
+                            if (submitBtn) submitBtn.disabled = true;
+                        }
+                    }
+                }
+                return;
+            }
+
+            // --- Lógica para selecionar a opção (clique no LI) ---
+            const listItem = target.closest('li');
+            // Só seleciona se clicar DENTRO de .option-content ou no próprio LI (evita selecionar ao clicar no botão discard)
+            // E verifica se não está respondido
+            if (
+                listItem &&
+                !listItem.classList.contains('answered') &&
+                target.closest('.option-content, li')
+            ) {
+                // Não permite selecionar se já estiver descartado
+                if (listItem.classList.contains('option-discarded')) return;
+
+                optionsList
+                    .querySelectorAll('li')
+                    .forEach((opt) => opt.classList.remove('selected'));
+                listItem.classList.add('selected');
+                selectedOption = parseInt(listItem.dataset.option);
+
+                const submitBtn = document.getElementById('submit-answer');
+                if (submitBtn) submitBtn.disabled = false;
+            }
         });
-    });
 
-    document.getElementById('submit-answer').addEventListener('click', () => {
-        if (selectedOption !== null) {
-            const isCorrect = quizManager.submitAnswer(
-                questionIndex,
-                selectedOption
-            );
-            showAnswerFeedback(question, selectedOption, isCorrect);
+        // Listener para o botão Responder (separado)
+        const submitBtn = document.getElementById('submit-answer');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => {
+                if (selectedOption !== null) {
+                    const isCorrect = quizManager.submitAnswer(
+                        questionIndex,
+                        selectedOption
+                    );
+                    showAnswerFeedback(question, selectedOption, isCorrect);
+                }
+            });
         }
-    });
 
-    document.getElementById('skip-question').addEventListener('click', () => {
-        quizManager.submitAnswer(questionIndex, -1);
-        quizManager.currentQuestionIndex++;
-        quizManager.questionStartTime = Date.now();
-        renderCurrentQuestion();
-    });
+        // Listener para o botão Pular (separado)
+        const skipBtn = document.getElementById('skip-question');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                quizManager.submitAnswer(questionIndex, -1);
+                if (!isPostQuizReviewMode) {
+                    quizManager.currentQuestionIndex++;
+                    quizManager.questionStartTime = Date.now();
+                }
+                renderCurrentQuestion();
+            });
+        }
+    }
+    // Listener para MODO REVISÃO PÓS-QUIZ ou MODO ATIVO JÁ RESPONDIDO
+    else {
+        const nextBtn = document.getElementById('next-question');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (isPostQuizReviewMode) {
+                    renderCurrentQuestion(questionIndex + 1);
+                } else {
+                    quizManager.currentQuestionIndex++;
+                    quizManager.questionStartTime = Date.now();
+                    renderCurrentQuestion();
+                }
+            });
+        }
+    }
+
+    // Listener para o botão Voltar
+    const prevBtn = document.getElementById('prev-question');
+    if (prevBtn && !prevBtn.disabled) {
+        prevBtn.addEventListener('click', () => {
+            if (isPostQuizReviewMode) {
+                renderCurrentQuestion(questionIndex - 1);
+            } else {
+                quizManager.currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        });
+    }
 }
 
-function showAnswerFeedback(question, selectedOption, isCorrect) {
+// app.js - ADICIONE esta nova função
+
+function showQuizResultsModal(result) {
+    if (!result) {
+        console.error('[Results Modal] Dados do resultado inválidos.');
+        return;
+    }
+
+    console.log('[Results Modal] Exibindo modal com resultados:', result);
     const quizArea = document.getElementById('quiz-area');
+    quizArea.innerHTML = ''; // Limpa a área do quiz antes de mostrar o modal
 
-    document.querySelectorAll('.quiz-options li').forEach((option, index) => {
-        if (index === question.correctAnswer) {
-            option.classList.add('correct');
-        } else if (index === selectedOption && !isCorrect) {
-            option.classList.add('incorrect');
-        }
-    });
+    isPostQuizReviewMode = false; // Garante que saiu do modo revisão ao ver resultados
 
-    const feedbackDiv = document.createElement('div');
-    feedbackDiv.className = 'answer-feedback';
-    feedbackDiv.innerHTML = `
-        <p class="${isCorrect ? 'correct-feedback' : 'incorrect-feedback'}">
-            ${isCorrect ? '✅ Correto!' : '❌ Incorreto!'}
-        </p>
-        <p>${question.explanation}</p>
-        <button id="next-question">Próxima Pergunta</button>
-    `;
-
-    quizArea.appendChild(feedbackDiv);
-
-    document.getElementById('next-question').addEventListener('click', () => {
-        quizManager.currentQuestionIndex++;
-        quizManager.questionStartTime = Date.now();
-        renderCurrentQuestion();
-    });
-}
-
-function renderQuizResults(result) {
-    const quizArea = document.getElementById('quiz-area');
-    const percentage = result.percentage;
-    const duration = Math.round((result.endTime - result.startTime) / 1000);
+    const duration =
+        result.endTime && result.startTime
+            ? Math.round(
+                  (new Date(result.endTime) - new Date(result.startTime)) / 1000
+              )
+            : 0;
+    const minutes = Math.floor(duration / 60);
+    const seconds = (duration % 60).toString().padStart(2, '0');
 
     let performanceMessage = '';
-    if (percentage >= 90) performanceMessage = 'Excelente! 🏆';
-    else if (percentage >= 70) performanceMessage = 'Muito bom! 👏';
-    else if (percentage >= 50) performanceMessage = 'Bom trabalho! 👍';
-    else performanceMessage = 'Continue estudando! 📚';
+    let performanceClass = '';
+    if (result.percentage >= 90) {
+        performanceMessage = 'Excelente! 🏆';
+        performanceClass = 'excellent';
+    } else if (result.percentage >= 70) {
+        performanceMessage = 'Muito bom! 👏';
+        performanceClass = 'great';
+    } else if (result.percentage >= 50) {
+        performanceMessage = 'Bom trabalho! 👍';
+        performanceClass = 'good';
+    } else {
+        performanceMessage = 'Continue estudando! 📚';
+        performanceClass = 'needs-improvement';
+    }
 
-    quizArea.innerHTML = `
-        <div class="quiz-results">
-            <h3>Quiz Concluído!</h3>
-            <div class="result-stats">
-                <div class="result-score">
-                    <h4>${result.score}/${result.questions.length}</h4>
-                    <p>${percentage}%</p>
+    const modal = document.createElement('div');
+    modal.id = 'quiz-results-modal'; // Adiciona ID para estilização específica
+    modal.className = 'modal-overlay quiz-results-modal'; // Adiciona classe específica
+
+    // Guarda os dados do resultado no elemento do modal para o botão de revisão
+    modal.dataset.quizResult = JSON.stringify(result);
+
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                 <h3>Quiz Concluído!</h3>
+                 <button class="btn-icon close-modal-btn" title="Fechar">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="result-summary">
+                    <div class="result-score ${performanceClass}">
+                        <span class="score-value">${result.score} / ${
+        result.questions.length
+    }</span>
+                        <span class="percentage-value">${
+                            result.percentage
+                        }%</span>
+                    </div>
+                    <div class="result-performance ${performanceClass}">
+                        ${performanceMessage}
+                    </div>
                 </div>
                 <div class="result-details">
-                    <p><strong>Tempo:</strong> ${Math.floor(duration / 60)}:${(
-        duration % 60
-    )
-        .toString()
-        .padStart(2, '0')}</p>
-                    <p><strong>Dificuldade:</strong> ${result.difficulty}</p>
-                    <p><strong>Performance:</strong> ${performanceMessage}</p>
+                    <div class="detail-item">
+                        <span class="detail-label">Tempo Total:</span>
+                        <span class="detail-value">${minutes}:${seconds}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Dificuldade:</span>
+                        <span class="detail-value">${
+                            result.displayDifficulty || 'N/A'
+                        }</span>
+                    </div>
+                    ${
+                        result.config?.sourceFilter &&
+                        result.config.sourceFilter !== 'all'
+                            ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Fonte:</span>
+                        <span class="detail-value">${result.config.sourceFilter}</span>
+                    </div>
+                    `
+                            : ''
+                    }
+                     ${
+                         result.fromSpecificArticles
+                             ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Foco:</span>
+                        <span class="detail-value">Artigos Específicos</span>
+                    </div>
+                    `
+                             : ''
+                     }
                 </div>
             </div>
-            <div class="quiz-actions">
-                <button id="new-quiz">Novo Quiz</button>
-                <button id="back-to-dashboard">Voltar ao Dashboard</button>
+            <div class="modal-actions quiz-results-actions">
+                <button id="review-answers-btn" class="btn btn-secondary">Revisar Respostas</button>
+                <button id="new-quiz-modal-btn" class="btn btn-primary">Novo Quiz</button>
+                <button id="dashboard-modal-btn" class="btn btn-secondary">Voltar ao Dashboard</button>
             </div>
         </div>
     `;
 
-    document.getElementById('new-quiz').addEventListener('click', () => {
-        renderQuiz();
+    document.body.appendChild(modal);
+
+    // --- Listeners do Modal ---
+    const closeModal = () => {
+        if (modal.parentNode) {
+            document.body.removeChild(modal);
+        }
+        quizManager.resetQuiz(); // Reseta o estado do quiz AO FECHAR o modal
+        renderQuiz(); // Volta para a tela de configuração
+    };
+
+    modal
+        .querySelector('.close-modal-btn')
+        .addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
     });
 
-    document
-        .getElementById('back-to-dashboard')
+    modal.querySelector('#new-quiz-modal-btn').addEventListener('click', () => {
+        if (modal.parentNode) document.body.removeChild(modal);
+        quizManager.resetQuiz();
+        renderQuiz(); // Vai para a configuração de novo quiz
+    });
+
+    modal
+        .querySelector('#dashboard-modal-btn')
         .addEventListener('click', () => {
-            document.querySelectorAll('section').forEach((section) => {
-                section.classList.remove('active-section');
-            });
+            if (modal.parentNode) document.body.removeChild(modal);
+            quizManager.resetQuiz();
+            // Navega para o dashboard
+            document
+                .querySelectorAll('section')
+                .forEach((sec) => sec.classList.remove('active-section'));
             document
                 .getElementById('dashboard')
                 .classList.add('active-section');
+            document
+                .querySelectorAll('#sidebar nav a')
+                .forEach((link) => link.classList.remove('active'));
+            document
+                .querySelector('#sidebar nav a[href="#dashboard"]')
+                .classList.add('active');
             updateDashboard();
         });
+
+    // Botão Revisar Respostas
+    modal.querySelector('#review-answers-btn').addEventListener('click', () => {
+        const storedResult = JSON.parse(modal.dataset.quizResult);
+        if (storedResult) {
+            isPostQuizReviewMode = true; // Ativa o modo de revisão
+            // Não precisa resetar o quizManager.currentQuiz, pois ele já contém os dados corretos do quiz finalizado
+            // Apenas define o índice inicial para a revisão
+            // quizManager.currentQuestionIndex = 0; // renderCurrentQuestion(0) fará isso
+            if (modal.parentNode) document.body.removeChild(modal); // Fecha o modal
+            renderCurrentQuestion(0); // Inicia a renderização da revisão pela primeira questão
+        } else {
+            console.error(
+                'Não foi possível recuperar os dados do quiz para revisão.'
+            );
+        }
+    });
 }
 
-function renderQuizHistory() {
-    const recentQuizzes = quizManager.quizHistory.slice(-5).reverse();
+// app.js - SUBSTITUA a função showAnswerFeedback INTEIRA por esta:
 
-    if (recentQuizzes.length === 0) {
-        return '<p>Nenhum quiz realizado ainda.</p>';
+function showAnswerFeedback(question, selectedOption, isCorrect) {
+    const quizArea = document.getElementById('quiz-area');
+    const optionsList = quizArea.querySelector('.quiz-options');
+    const controlsDiv = quizArea.querySelector('.quiz-controls');
+
+    // 1. Marca visualmente as opções e desabilita cliques
+    optionsList.classList.add('answered');
+    optionsList.querySelectorAll('li').forEach((option, index) => {
+        option.classList.remove('selected'); // Remove seleção temporária
+        let liClasses = 'answered'; // Adiciona classe para desabilitar hover/clique
+        if (index === question.correctAnswer) {
+            liClasses += ' correct';
+        } else if (index === selectedOption) {
+            liClasses += ' incorrect user-selected';
+        }
+        if (index === selectedOption) {
+            liClasses += ' user-selected';
+        }
+        option.className = liClasses.trim(); // Define todas as classes de uma vez
+
+        // 2. Cria e exibe a explicação INDIVIDUAL abaixo da opção correspondente
+        const explanationText =
+            question.explanations?.[index] || 'Explicação indisponível.';
+        const explanationDiv = document.createElement('div');
+        explanationDiv.className = `option-explanation ${
+            index === question.correctAnswer
+                ? 'explanation-correct'
+                : 'explanation-incorrect'
+        }`;
+        explanationDiv.innerHTML = `<p>${explanationText.replace(
+            /\n/g,
+            '<br>'
+        )}</p>`;
+        option.appendChild(explanationDiv); // Adiciona a explicação ao <li>
+        // Força reflow para animação (opcional)
+        void explanationDiv.offsetWidth;
+        explanationDiv.style.opacity = 1;
+        explanationDiv.style.maxHeight = '200px';
+    });
+
+    // 3. Remove botões antigos (Responder/Pular)
+    const submitBtn = document.getElementById('submit-answer');
+    const skipBtn = document.getElementById('skip-question');
+    if (submitBtn) submitBtn.remove();
+    if (skipBtn) skipBtn.remove();
+
+    // 4. Adiciona botão "Próxima" se não existir
+    if (!document.getElementById('next-question')) {
+        const nextButton = document.createElement('button');
+        nextButton.id = 'next-question';
+        nextButton.textContent = 'Próxima →';
+        nextButton.className = 'btn btn-primary'; // Estilo primário
+        nextButton.addEventListener('click', () => {
+            quizManager.currentQuestionIndex++;
+            quizManager.questionStartTime = Date.now();
+            renderCurrentQuestion();
+        });
+        controlsDiv.appendChild(nextButton); // Adiciona aos controles
     }
 
-    return recentQuizzes
+    // 5. Foca no botão "Próxima"
+    document.getElementById('next-question')?.focus();
+}
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderQuiz INTEIRA por esta versão corrigida:
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderQuiz INTEIRA por esta versão corrigida:
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderQuiz INTEIRA por esta versão corrigida:
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função renderQuiz INTEIRA por esta versão corrigida:
+
+function renderQuiz() {
+    const quizArea = document.getElementById('quiz-area');
+    quizManager.resetQuiz(); // Reseta o estado ao entrar na tela de configuração
+    isPostQuizReviewMode = false; // Garante que não está em modo revisão
+
+    const suggestedDifficulty = quizManager.getAverageDifficulty();
+    const uniqueSources = getUniqueChunkSources(); // Pega as fontes disponíveis
+    // Pega filtros individuais persistidos ou default 'all'
+    const statsFilterSource = quizArea.dataset.statsFilterSource || 'all';
+    const wrongFilterSource = quizArea.dataset.wrongFilterSource || 'all';
+    const historyFilterSource = quizArea.dataset.historyFilterSource || 'all';
+
+    // Gera o HTML principal
+    quizArea.innerHTML = `
+        <div class="quiz-start">
+            <h3>Quiz Adaptativo</h3>
+            <p>Configure seu quiz ou revise questões anteriores.</p>
+
+            <div class="card quiz-stats-config">
+                <h4>📊 Estatísticas</h4>
+                <div class="stats-controls">
+                     <label for="stats-source-filter">Filtrar Fonte:</label>
+                     <select id="stats-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         statsFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                </div>
+                <div id="quiz-stats-display">
+                    ${renderQuizStats(statsFilterSource)} 
+                </div>
+            </div>
+
+            <div class="card review-wrong-section">
+                <h4>❌ Revisar Questões Erradas</h4>
+                <p>Refaça as questões erradas para reforçar o aprendizado.</p>
+                <div class="review-wrong-controls">
+                     <label for="wrong-source-filter">Filtrar Fonte:</label>
+                     <select id="wrong-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         wrongFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                    <button id="start-review-wrong-btn" class="btn btn-warning">
+                        
+                        Revisar Erradas (${
+                            quizManager.getWrongQuestionsList(wrongFilterSource)
+                                .length
+                        })
+                    </button>
+                </div>
+            </div>
+
+            <div class="card quiz-config-main">
+                 <h4>⚙️ Configurar Novo Quiz</h4>
+                 <div class="quiz-config">
+                    
+                    <div class="config-section">
+                        <h5>Básicas</h5>
+                        <div class="form-group">
+                            <label for="quiz-difficulty">Dificuldade:</label>
+                            <select id="quiz-difficulty" class="form-control">
+                                <option value="easy" ${
+                                    suggestedDifficulty === 'easy'
+                                        ? 'selected'
+                                        : ''
+                                }>Fácil</option>
+                                <option value="medium" ${
+                                    suggestedDifficulty === 'medium'
+                                        ? 'selected'
+                                        : ''
+                                }>Médio</option>
+                                <option value="hard" ${
+                                    suggestedDifficulty === 'hard'
+                                        ? 'selected'
+                                        : ''
+                                }>Difícil</option>
+                                <option value="adaptive">Adaptativo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quiz-questions">Nº de Questões:</label>
+                            <select id="quiz-questions" class="form-control">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                            </select>
+                        </div>
+                         <div class="form-group">
+                            <label for="question-type">Formato:</label>
+                            <select id="question-type" class="form-control" disabled>
+                                <option value="multiple-choice" selected>Múltipla Escolha</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="num-options">Alternativas:</label>
+                            <select id="num-options" class="form-control">
+                                 <option value="4">4</option>
+                                 <option value="5" selected>5</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    
+                    <div class="config-section">
+                        <h5>Conteúdo</h5>
+                         <div class="form-group">
+                            <label for="content-focus">Foco:</label>
+                            <select id="content-focus" class="form-control">
+                                <option value="general">Geral</option>
+                                <option value="laws">Específico - Leis</option>
+                                <option value="concepts">Específico - Conceitos</option>
+                                <option value="procedures">Específico - Procedimentos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="source-filter">Fonte (PDF):</label>
+                            <select id="source-filter" class="form-control">
+                                <option value="all">Todas as Fontes (Aleatório)</option>
+                                ${uniqueSources
+                                    .map(
+                                        (source) =>
+                                            `<option value="${source}">${
+                                                getTrackMetadata(source)
+                                                    .displayName || source
+                                            }</option>`
+                                    )
+                                    .join('')}
+                            </select>
+                        </div>
+                         <div class="form-group">
+                             <label class="config-checkbox">
+                                <input type="checkbox" id="use-specific-articles">
+                                <span class="label-text">Usar Artigos Específicos</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    
+                    <div class="config-section">
+                         <h5>Avançadas</h5>
+                        <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="include-tricks" checked>
+                                <span class="label-text">Incluir "pegadinhas"</span>
+                            </label>
+                        </div>
+                         <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="contextual-questions" checked>
+                                <span class="label-text">Questões Contextualizadas</span>
+                            </label>
+                        </div>
+                         <div class="form-group">
+                            <label class="config-checkbox">
+                                <input type="checkbox" id="review-wrong" checked>
+                                <span class="label-text">Revisar erradas ao final (Pós-Quiz)</span>
+                            </label>
+                        </div>
+                    </div>
+                 </div>
+
+                 
+                 <div id="articles-selection-container" class="articles-selection-container card" style="display: none;">
+                     <h5>⚖️ Selecionar Artigos Específicos</h5>
+                     <p>Escolha os artigos base para as questões. A lista abaixo é filtrada pela fonte selecionada acima.</p>
+                     <div class="articles-filter">
+                         <input type="text" id="articles-search" class="form-control" placeholder="Buscar artigos...">
+                         <div class="articles-actions">
+                             <button type="button" id="select-all-articles" class="btn btn-secondary btn-small">Marcar Visíveis</button>
+                             <button type="button" id="clear-articles" class="btn btn-secondary btn-small">Desmarcar Visíveis</button>
+                         </div>
+                     </div>
+                     <div id="articles-list" class="articles-list-accordion">
+                         <p>Carregando artigos...</p> 
+                     </div>
+                     <div class="selected-articles-summary">
+                         <span id="selected-articles-count">0 artigos selecionados</span>
+                     </div>
+                 </div>
+
+                 
+                 <div class="quiz-actions main-actions">
+                    <button id="start-quiz-btn" class="btn btn-primary">🚀 Iniciar Quiz Personalizado</button>
+                    <button id="quick-quiz-btn" class="btn btn-secondary">⚡ Quiz Rápido (5 Aleatórias)</button>
+                     ${
+                         quizManager.questionBank.length > 0
+                             ? `<button id="use-question-bank" class="btn btn-secondary">🏦 Usar Banco (${quizManager.questionBank.length})</button>`
+                             : ''
+                     }
+                 </div>
+            </div>
+
+            
+            <div class="card quiz-history-section">
+                <h4>📜 Histórico Recente</h4>
+                 <div class="history-controls">
+                     <label for="history-source-filter">Filtrar Fonte:</label>
+                     <select id="history-source-filter" class="filter-select">
+                         <option value="all">Todas</option>
+                         ${uniqueSources
+                             .map(
+                                 (source) =>
+                                     `<option value="${source}" ${
+                                         historyFilterSource === source
+                                             ? 'selected'
+                                             : ''
+                                     }>${
+                                         getTrackMetadata(source).displayName ||
+                                         source
+                                     }</option>`
+                             )
+                             .join('')}
+                     </select>
+                </div>
+                <div id="quiz-history-list">
+                    ${renderQuizHistory(historyFilterSource)}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // --- Adicionar Listeners DEPOIS de definir o innerHTML ---
+
+    // Botão Iniciar Quiz Personalizado
+    const startQuizBtn = document.getElementById('start-quiz-btn');
+    if (startQuizBtn) {
+        startQuizBtn.addEventListener('click', async () => {
+            console.log(
+                "[Start Quiz] Botão 'Iniciar Quiz Personalizado' clicado."
+            );
+            let config;
+            try {
+                config = getQuizConfig(); // Usa a versão segura de getQuizConfig
+                console.log('[Start Quiz] Configuração obtida:', config);
+                if (!config) {
+                    console.error('[Start Quiz] Falha ao obter configuração.');
+                    alert('Erro ao ler as configurações do quiz.');
+                    return;
+                }
+            } catch (error) {
+                console.error('[Start Quiz] Erro em getQuizConfig:', error);
+                alert('Erro ao processar as configurações do quiz.');
+                return;
+            }
+
+            console.log('[Start Quiz] Verificando seleção de artigos...');
+            if (
+                config.useSpecificArticles &&
+                config.selectedArticles.length === 0
+            ) {
+                console.warn(
+                    "[Start Quiz] 'Usar Artigos Específicos' marcado, mas nenhum artigo selecionado."
+                );
+                alert(
+                    "Selecione 'Usar Artigos Específicos' e escolha os artigos, ou desmarque a opção para usar artigos aleatórios da fonte selecionada."
+                );
+                return;
+            }
+
+            console.log(
+                '[Start Quiz] Verificando excesso de artigos selecionados...'
+            );
+            if (
+                config.selectedArticles.length > config.numQuestions &&
+                config.useSpecificArticles
+            ) {
+                if (
+                    !confirm(
+                        `Você selecionou ${config.selectedArticles.length} artigos, mas o quiz terá apenas ${config.numQuestions} questões. Deseja continuar selecionando aleatoriamente ${config.numQuestions} destes artigos?`
+                    )
+                ) {
+                    console.log(
+                        '[Start Quiz] Geração cancelada pelo usuário (excesso de artigos).'
+                    );
+                    return;
+                }
+                config.selectedArticles = [...config.selectedArticles]
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, config.numQuestions);
+                console.log(
+                    '[Start Quiz] Artigos selecionados ajustados para:',
+                    config.selectedArticles.length
+                );
+            }
+
+            showLoadingIndicator('Gerando seu quiz personalizado...');
+            console.log('[Start Quiz] Chamando quizManager.generateQuiz...');
+            let quiz;
+            try {
+                quiz = await quizManager.generateQuiz(config);
+                console.log(
+                    '[Start Quiz] quizManager.generateQuiz retornou:',
+                    quiz ? `Quiz ID ${quiz.id}` : 'null'
+                );
+            } catch (error) {
+                console.error(
+                    '[Start Quiz] Erro durante quizManager.generateQuiz:',
+                    error
+                );
+                quiz = null;
+                alert(
+                    'Ocorreu um erro inesperado ao gerar o quiz. Verifique o console.'
+                );
+            } finally {
+                hideLoadingIndicator();
+            }
+
+            if (quiz) {
+                console.log(
+                    '[Start Quiz] Quiz gerado com sucesso. Chamando renderCurrentQuestion...'
+                );
+                quizManager.questionStartTime = Date.now();
+                try {
+                    renderCurrentQuestion();
+                    console.log(
+                        '[Start Quiz] renderCurrentQuestion chamada com sucesso.'
+                    );
+                } catch (error) {
+                    console.error(
+                        '[Start Quiz] Erro durante renderCurrentQuestion:',
+                        error
+                    );
+                    alert(
+                        'Erro ao exibir a primeira questão. Verifique o console.'
+                    );
+                    renderQuiz();
+                }
+            } else {
+                console.warn(
+                    '[Start Quiz] Falha na geração do quiz (quiz é null). Verifique logs anteriores.'
+                );
+            }
+        });
+    } else {
+        console.error(
+            'ERRO CRÍTICO: Botão #start-quiz-btn não encontrado no DOM.'
+        );
+    }
+
+    // Botão Quiz Rápido
+    const quickQuizBtn = document.getElementById('quick-quiz-btn');
+    if (quickQuizBtn) {
+        quickQuizBtn.addEventListener('click', async () => {
+            console.log("[Quick Quiz] Botão 'Quiz Rápido' clicado.");
+            let allArticles;
+            try {
+                allArticles = getAllArticles();
+                console.log(
+                    `[Quick Quiz] getAllArticles encontrou ${allArticles.length} artigos.`
+                );
+            } catch (error) {
+                console.error(
+                    '[Quick Quiz] Erro ao chamar getAllArticles:',
+                    error
+                );
+                alert('Erro ao buscar artigos para o quiz rápido.');
+                return;
+            }
+
+            if (allArticles.length === 0) {
+                console.warn(
+                    '[Quick Quiz] Nenhum artigo encontrado. Impossível gerar quiz rápido.'
+                );
+                alert(
+                    'Nenhum artigo de lei processado ou encontrado. Carregue PDFs e processe-os primeiro.'
+                );
+                return;
+            }
+
+            const numQuickQuestions = Math.min(5, allArticles.length);
+            console.log(
+                `[Quick Quiz] Selecionando ${numQuickQuestions} artigos aleatórios.`
+            );
+            const randomArticles = [...allArticles]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, numQuickQuestions);
+            console.log(
+                '[Quick Quiz] Artigos selecionados (IDs):',
+                randomArticles.map((a) => a.id)
+            );
+
+            const quickConfig = {
+                difficulty: 'adaptive',
+                numQuestions: numQuickQuestions,
+                questionType: 'multiple-choice',
+                numOptions: 5,
+                contentFocus: 'general',
+                sourceFilter: 'all',
+                includeTricks: true,
+                contextual: true,
+                timeLimit: false,
+                reviewWrong: true,
+                useSpecificArticles: true,
+                selectedArticles: randomArticles,
+            };
+            console.log('[Quick Quiz] Configuração criada:', quickConfig);
+
+            showLoadingIndicator('Gerando quiz rápido...');
+            console.log('[Quick Quiz] Chamando quizManager.generateQuiz...');
+            let quiz;
+            try {
+                quiz = await quizManager.generateQuiz(quickConfig);
+                console.log(
+                    '[Quick Quiz] quizManager.generateQuiz retornou:',
+                    quiz ? `Quiz ID ${quiz.id}` : 'null'
+                );
+            } catch (error) {
+                console.error(
+                    '[Quick Quiz] Erro durante quizManager.generateQuiz:',
+                    error
+                );
+                quiz = null;
+                alert(
+                    'Ocorreu um erro inesperado ao gerar o quiz rápido. Verifique o console.'
+                );
+            } finally {
+                hideLoadingIndicator();
+            }
+
+            if (quiz) {
+                console.log(
+                    '[Quick Quiz] Quiz rápido gerado. Chamando renderCurrentQuestion...'
+                );
+                quizManager.questionStartTime = Date.now();
+                try {
+                    renderCurrentQuestion();
+                    console.log(
+                        '[Quick Quiz] renderCurrentQuestion chamada com sucesso.'
+                    );
+                } catch (error) {
+                    console.error(
+                        '[Quick Quiz] Erro durante renderCurrentQuestion:',
+                        error
+                    );
+                    alert('Erro ao exibir a primeira questão do quiz rápido.');
+                    renderQuiz();
+                }
+            } else {
+                console.warn(
+                    '[Quick Quiz] Falha na geração do quiz rápido (quiz retornou null).'
+                );
+            }
+        });
+    } else {
+        console.error('ERRO CRÍTICO: Botão #quick-quiz-btn não encontrado.');
+    }
+
+    // Botão Usar Banco
+    const bankBtn = document.getElementById('use-question-bank');
+    if (bankBtn) {
+        bankBtn.addEventListener('click', () => {
+            console.log("[Bank Quiz] Botão 'Usar Banco' clicado.");
+            const quiz = quizManager.startQuizFromBank();
+            if (quiz) {
+                console.log(
+                    '[Bank Quiz] Quiz do banco iniciado. Chamando renderCurrentQuestion...'
+                );
+                quizManager.questionStartTime = Date.now(); // Define o startTime
+                renderCurrentQuestion();
+            } else {
+                console.warn('[Bank Quiz] Falha ao iniciar quiz do banco.');
+            }
+        });
+    } // Não loga erro se o botão não existir (opcional)
+
+    // Botão Revisar Erradas
+    const reviewWrongBtn = document.getElementById('start-review-wrong-btn');
+    if (reviewWrongBtn) {
+        reviewWrongBtn.addEventListener('click', () => {
+            const sourceFilter =
+                document.getElementById('wrong-source-filter')?.value || 'all'; // Leitura segura
+            console.log(
+                `[Review Wrong] Botão clicado. Filtro: ${sourceFilter}`
+            );
+            startReviewAllWrong(sourceFilter);
+        });
+        // Atualiza contagem inicial usando o filtro CORRETO
+        reviewWrongBtn.textContent = `Revisar Erradas (${
+            quizManager.getWrongQuestionsList(wrongFilterSource).length
+        })`;
+    } else {
+        console.error('ERRO: Botão #start-review-wrong-btn não encontrado.');
+    }
+
+    // Filtro principal de fonte (para seleção de artigos)
+    const sourceFilterSelect = document.getElementById('source-filter');
+    if (sourceFilterSelect) {
+        sourceFilterSelect.addEventListener('change', () => {
+            console.log('[Source Filter] Filtro de fonte principal alterado.');
+            const articlesListDiv = document.getElementById('articles-list');
+            const useSpecificChecked = document.getElementById(
+                'use-specific-articles'
+            )?.checked;
+            if (articlesListDiv && useSpecificChecked) {
+                try {
+                    articlesListDiv.innerHTML = renderAvailableArticles();
+                    setupArticleSelectionListeners();
+                } catch (e) {
+                    console.error('Erro ao re-renderizar artigos:', e);
+                }
+                updateSelectedArticlesCount();
+            }
+        });
+    } else {
+        console.error('ERRO: Select #source-filter não encontrado.');
+    }
+
+    // Checkbox "Usar Artigos Específicos"
+    const useSpecificCheckbox = document.getElementById(
+        'use-specific-articles'
+    );
+    if (useSpecificCheckbox) {
+        useSpecificCheckbox.addEventListener('change', function () {
+            console.log(
+                `[Checkbox Specific] Checkbox 'Usar Artigos Específicos' alterado. Estado: ${this.checked}`
+            );
+            const container = document.getElementById(
+                'articles-selection-container'
+            );
+            const articlesListDiv = document.getElementById('articles-list');
+            if (container && articlesListDiv) {
+                container.style.display = this.checked ? 'block' : 'none';
+                if (this.checked) {
+                    try {
+                        console.log(
+                            '[Checkbox Specific] Renderizando artigos...'
+                        );
+                        articlesListDiv.innerHTML = renderAvailableArticles();
+                        console.log(
+                            '[Checkbox Specific] Anexando listeners...'
+                        );
+                        setupArticleSelectionListeners();
+                        console.log('[Checkbox Specific] Listeners anexados.');
+                    } catch (error) {
+                        console.error(
+                            'Erro ao renderizar lista de artigos:',
+                            error
+                        );
+                    }
+                } else {
+                    articlesListDiv.innerHTML = '';
+                }
+                updateSelectedArticlesCount();
+            } else {
+                console.error(
+                    "ERRO: Container ou lista de artigos não encontrados no listener do checkbox 'use-specific-articles'."
+                );
+            }
+        });
+
+        // Estado inicial e Renderização Inicial
+        const articlesListInitialDiv = document.getElementById('articles-list');
+        const articlesContainer = document.getElementById(
+            'articles-selection-container'
+        );
+        const useSpecificInitialState = useSpecificCheckbox.checked;
+        if (articlesContainer)
+            articlesContainer.style.display = useSpecificInitialState
+                ? 'block'
+                : 'none';
+        if (useSpecificInitialState && articlesListInitialDiv) {
+            try {
+                console.log(
+                    "[Render Quiz Init] 'Use specific' está marcado. Renderizando artigos iniciais..."
+                );
+                articlesListInitialDiv.innerHTML = renderAvailableArticles();
+            } catch (e) {
+                console.error('Erro na renderização inicial dos artigos:', e);
+            }
+        }
+    } else {
+        console.error('ERRO: Checkbox #use-specific-articles não encontrado.');
+    }
+
+    // Listeners INDEPENDENTES para cada filtro
+    const statsFilter = document.getElementById('stats-source-filter');
+    const historyFilter = document.getElementById('history-source-filter');
+    const wrongFilter = document.getElementById('wrong-source-filter');
+
+    if (statsFilter) {
+        statsFilter.addEventListener('change', (e) => {
+            const selectedSource = e.target.value;
+            console.log(
+                `[Stats Filter] Filtro de Stats alterado para: ${selectedSource}`
+            );
+            const statsDisplay = document.getElementById('quiz-stats-display');
+            if (statsDisplay)
+                statsDisplay.innerHTML = renderQuizStats(selectedSource);
+            quizArea.dataset.statsFilterSource = selectedSource;
+        });
+        statsFilter.value = statsFilterSource; // Restaura valor
+    } else {
+        console.error('ERRO: Select #stats-source-filter não encontrado.');
+    }
+
+    if (historyFilter) {
+        historyFilter.addEventListener('change', (e) => {
+            const selectedSource = e.target.value;
+            console.log(
+                `[History Filter] Filtro de Histórico alterado para: ${selectedSource}`
+            );
+            const historyList = document.getElementById('quiz-history-list');
+            if (historyList)
+                historyList.innerHTML = renderQuizHistory(selectedSource);
+            quizArea.dataset.historyFilterSource = selectedSource;
+            setupHistoryReviewButtons(); // Reanexa listeners
+        });
+        historyFilter.value = historyFilterSource; // Restaura valor
+    } else {
+        console.error('ERRO: Select #history-source-filter não encontrado.');
+    }
+
+    if (wrongFilter) {
+        wrongFilter.addEventListener('change', (e) => {
+            const selectedSource = e.target.value;
+            console.log(
+                `[Wrong Filter] Filtro de Erradas alterado para: ${selectedSource}`
+            );
+            const reviewBtn = document.getElementById('start-review-wrong-btn');
+            if (reviewBtn) {
+                reviewBtn.textContent = `Revisar Erradas (${
+                    quizManager.getWrongQuestionsList(selectedSource).length
+                })`;
+            }
+            quizArea.dataset.wrongFilterSource = selectedSource;
+        });
+        wrongFilter.value = wrongFilterSource; // Restaura valor
+    } else {
+        console.error('ERRO: Select #wrong-source-filter não encontrado.');
+    }
+
+    // Chama listeners que dependem do HTML gerado (DEPOIS de definir innerHTML)
+    console.log(
+        '[Render Quiz] Chamando setupArticleSelectionListeners no final...'
+    );
+    setupArticleSelectionListeners();
+    console.log('[Render Quiz] Chamando setupHistoryReviewButtons no final...');
+    setupHistoryReviewButtons();
+    console.log(
+        '[Render Quiz] Chamando updateSelectedArticlesCount no final...'
+    );
+    updateSelectedArticlesCount();
+    console.log(
+        '[Render Quiz] Renderização e configuração de listeners concluídas.'
+    );
+}
+
+// app.js - Fora da classe QuizManager
+function renderQuizHistory(sourceFilter = 'all') {
+    // Filtra o histórico
+    const filteredHistory = quizManager.quizHistory
+        .filter((quiz) => {
+            if (sourceFilter === 'all') return true;
+            // Verifica se o filtro de fonte foi usado na config OU se alguma questão veio dessa fonte
+            return (
+                quiz.config?.sourceFilter === sourceFilter ||
+                quiz.questions?.some((q) => q.sourceFile === sourceFilter)
+            );
+        })
+        .slice(-10)
+        .reverse(); // Pega os últimos 10 e inverte
+
+    if (filteredHistory.length === 0) {
+        return '<p class="no-history">Nenhum quiz no histórico para esta fonte.</p>'; // Mensagem de estado vazio
+    }
+
+    return filteredHistory
         .map((quiz) => {
-            const date = new Date(quiz.startTime).toLocaleDateString('pt-BR');
+            // Verifica se quiz e startTime existem antes de formatar
+            const date =
+                quiz && quiz.startTime
+                    ? new Date(quiz.startTime).toLocaleString('pt-BR', {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                      })
+                    : 'Data indisponível';
+            const duration =
+                quiz && quiz.endTime && quiz.startTime
+                    ? Math.round(
+                          (new Date(quiz.endTime) - new Date(quiz.startTime)) /
+                              1000
+                      )
+                    : 0;
+            const minutes = Math.floor(duration / 60);
+            const seconds = (duration % 60).toString().padStart(2, '0');
+            const score = quiz?.score ?? 0;
+            const totalQ = quiz?.questions?.length ?? 0;
+            const percentage = quiz?.percentage ?? 0;
+            const difficulty = quiz?.displayDifficulty ?? 'N/A';
+
+            // Extrai artigos únicos das questões do quiz (com checagem extra)
+            const articlesCovered =
+                [
+                    ...new Set(
+                        (quiz?.questions || [])
+                            .map((q) => q?.articleReference) // Acessa com segurança
+                            .filter(Boolean)
+                    ),
+                ].join(', ') || 'N/A';
+
+            // Conta questões erradas (com checagem extra)
+            const wrongAnswersCount = (quiz?.userAnswers || []).filter(
+                (ans) => ans && !ans.isCorrect && ans.selectedOption !== -1
+            ).length;
+
             return `
-            <div class="quiz-history-item">
-                <span>${date}</span>
-                <span>${quiz.score}/${quiz.questions.length} (${quiz.percentage}%)</span>
-                <span>${quiz.difficulty}</span>
+            <div class="quiz-history-item card">
+                 <div class="history-summary">
+                     <span class="history-date" title="Data/Hora do Início">${date}</span>
+                     <span class="history-score" title="Pontuação">Score: ${score}/${totalQ} (${percentage}%)</span>
+                     <span class="history-difficulty" title="Dificuldade Configurada">${difficulty}</span>
+                     <span class="history-time" title="Duração Total">Tempo: ${minutes}:${seconds}</span>
+                 </div>
+                 <div class="history-details">
+                    <strong>Artigos Abordados:</strong> ${articlesCovered}
+                 </div>
+                 <div class="history-actions">
+                     <button class="btn btn-secondary btn-small review-all-history" data-quiz-id="${
+                         quiz.id
+                     }" title="Refazer todas as questões deste quiz">Refazer Todas (${totalQ})</button>
+                     <button class="btn btn-warning btn-small review-wrong-history" data-quiz-id="${
+                         quiz.id
+                     }" ${wrongAnswersCount === 0 ? 'disabled' : ''} title="${
+                wrongAnswersCount > 0
+                    ? `Refazer as ${wrongAnswersCount} questões erradas`
+                    : 'Nenhuma questão errada neste quiz'
+            }">Refazer Erradas (${wrongAnswersCount})</button>
+                 </div>
             </div>
         `;
         })
@@ -7813,6 +10504,278 @@ function generateArticleSubject(articleText, fileName = '') {
             return detectCorregedoriaSubject(text);
         default:
             return 'Artigo de Lei';
+    }
+}
+
+// app.js - Adicionar estas funções FORA da classe QuizManager
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função startQuizReview INTEIRA por esta:
+function startQuizReview(quizId, filterWrong = false) {
+    console.log(
+        `[startQuizReview] Iniciando busca pelo Quiz ID (string): "${quizId}", filterWrong: ${filterWrong}`
+    );
+    console.log(
+        '[startQuizReview] IDs no Histórico (tipo original):',
+        quizManager.quizHistory.map((q) => ({ id: q.id, type: typeof q.id }))
+    ); // Log IDs e tipos
+
+    // --- CORREÇÃO: Comparar IDs como strings ---
+    const quizData = quizManager.quizHistory.find(
+        (quiz) => quiz && String(quiz.id) === String(quizId) // Converte ambos para string
+    );
+    // --- FIM DA CORREÇÃO ---
+
+    // --- LOG Detalhado do Resultado da Busca ---
+    if (quizData) {
+        console.log('[startQuizReview] Quiz encontrado no histórico:', {
+            id: quizData.id,
+            startTime: quizData.startTime,
+            hasQuestions: !!quizData.questions,
+            questionCount: quizData.questions?.length || 0,
+            hasUserAnswers: !!quizData.userAnswers,
+            userAnswersCount: quizData.userAnswers?.length || 0,
+        });
+    } else {
+        console.error(
+            `[startQuizReview] ERRO: Quiz com ID "${quizId}" NÃO encontrado em quizManager.quizHistory após conversão para string!`
+        );
+        console.log(
+            '[startQuizReview] Conteúdo atual de quizManager.quizHistory (IDs como string):',
+            JSON.stringify(quizManager.quizHistory.map((q) => String(q.id)))
+        );
+        alert(
+            `Erro: Não foi possível encontrar o quiz com ID ${quizId} no histórico.`
+        );
+        return;
+    }
+    // --- Fim do LOG ---
+
+    // --- Validação dos Dados Encontrados ---
+    if (!quizData.questions || quizData.questions.length === 0) {
+        console.error(
+            `[startQuizReview] ERRO: O quiz encontrado (ID: ${quizId}) não possui questões.`,
+            quizData
+        );
+        alert(
+            'Não foi possível encontrar dados válidos (questões) para este quiz no histórico.'
+        );
+        return;
+    }
+    if (
+        filterWrong &&
+        (!quizData.userAnswers || quizData.userAnswers.length === 0)
+    ) {
+        console.warn(
+            `[startQuizReview] Tentando refazer erradas, mas 'userAnswers' está vazio para o quiz ID: ${quizId}. Refazendo todas.`
+        );
+        filterWrong = false; // Fallback para refazer todas
+    }
+    // --- Fim da Validação ---
+
+    let questionsToReview = [];
+    let reviewTitle = `Revisando Quiz: ${new Date(
+        quizData.startTime
+    ).toLocaleDateString('pt-BR')}`;
+
+    if (filterWrong) {
+        const wrongQuestionIds = new Set(
+            (quizData.userAnswers || [])
+                .filter(
+                    (ans) =>
+                        ans &&
+                        ans.questionId &&
+                        !ans.isCorrect &&
+                        ans.selectedOption !== -1
+                )
+                .map((ans) => ans.questionId)
+        );
+        questionsToReview = quizData.questions.filter(
+            (q) => q && q.id && wrongQuestionIds.has(q.id)
+        );
+        reviewTitle += ' (Apenas Erradas)';
+
+        console.log(
+            `[startQuizReview] Filtrando erradas. IDs errados:`,
+            Array.from(wrongQuestionIds)
+        );
+        console.log(
+            `[startQuizReview] Questões erradas encontradas para revisão: ${questionsToReview.length}`
+        );
+
+        if (questionsToReview.length === 0) {
+            alert('Você acertou todas as questões neste quiz!');
+            return;
+        }
+    } else {
+        questionsToReview = [...quizData.questions]; // Copia todas
+        console.log(
+            `[startQuizReview] Refazendo todas as ${questionsToReview.length} questões.`
+        );
+    }
+
+    // --- Criação do Novo Quiz de Revisão ---
+    if (questionsToReview.length === 0) {
+        console.error(
+            '[startQuizReview] ERRO: Nenhuma questão válida selecionada para revisão após filtros.'
+        );
+        alert('Nenhuma questão encontrada para iniciar a revisão.');
+        return;
+    }
+
+    quizManager.currentQuiz = {
+        id: `review-${quizId}-${Date.now()}`,
+        questions: questionsToReview.sort(() => Math.random() - 0.5),
+        config: {
+            ...(quizData.config || {}),
+            reviewMode: true,
+            originalQuizId: quizId,
+            filterWrong,
+        },
+        startTime: new Date(),
+        endTime: null,
+        score: 0,
+        userAnswers: [],
+        displayDifficulty: `Revisão (${quizData.displayDifficulty || 'N/A'})`,
+        isReview: true,
+    };
+
+    quizManager.currentQuestionIndex = 0;
+    quizManager.userAnswers = new Array(
+        quizManager.currentQuiz.questions.length
+    ).fill(undefined);
+    quizManager.questionStartTime = Date.now();
+
+    console.log(
+        `[startQuizReview] Iniciando revisão com ${quizManager.currentQuiz.questions.length} questões.`
+    );
+    renderCurrentQuestion();
+}
+
+// app.js - Fora da classe QuizManager
+// ADICIONE ou SUBSTITUA esta função:
+function getAllArticles() {
+    console.log('[getAllArticles] Coletando todos os artigos únicos...'); // Log
+    const allArticles = [];
+    if (!lexiaChunks || lexiaChunks.length === 0) {
+        console.warn('[getAllArticles] lexiaChunks está vazio.');
+        return allArticles; // Retorna array vazio se não houver chunks
+    }
+
+    lexiaChunks.forEach((chunk) => {
+        // Verifica se legalArticles existe e é um array
+        if (
+            chunk.legalArticles &&
+            Array.isArray(chunk.legalArticles) &&
+            chunk.legalArticles.length > 0
+        ) {
+            chunk.legalArticles.forEach((article) => {
+                // Adiciona infos do chunk que são úteis e verifica se o artigo tem ID
+                if (article && article.id) {
+                    allArticles.push({
+                        ...article,
+                        chunkId: chunk.id,
+                        fileName: chunk.file,
+                    });
+                } else {
+                    console.warn(
+                        '[getAllArticles] Artigo inválido encontrado no chunk:',
+                        chunk.id,
+                        article
+                    );
+                }
+            });
+        }
+    });
+
+    // Remove duplicatas pelo ID do artigo
+    const uniqueArticles = allArticles.filter(
+        (article, index, self) =>
+            index === self.findIndex((a) => a.id === article.id)
+    );
+    console.log(
+        `[getAllArticles] Total de artigos únicos encontrados: ${uniqueArticles.length}`
+    ); // Log
+    return uniqueArticles;
+}
+
+// --- Funções de Loading Indicator (se ainda não existirem) ---
+function showLoadingIndicator(message = 'Carregando...') {
+    let indicator = document.getElementById('loading-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'loading-indicator';
+        indicator.className = 'modal-overlay loading-indicator'; // Reusa estilo de overlay
+        indicator.style.zIndex = '2000'; // Garante que fique acima de outros modais
+        indicator.innerHTML = `
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>${message}</p>
+            </div>
+        `;
+        document.body.appendChild(indicator);
+    } else {
+        indicator.querySelector('p').textContent = message;
+        indicator.style.display = 'flex';
+    }
+}
+
+function hideLoadingIndicator() {
+    const indicator = document.getElementById('loading-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// --- Função para adicionar listeners aos botões "Refazer" do histórico ---
+function setupHistoryReviewButtons() {
+    const historyList = document.getElementById('quiz-history-list');
+    if (!historyList) return;
+
+    // Remove listeners antigos para evitar duplicação (usando delegação)
+    // Clonar o nó pode ser excessivo aqui, vamos tentar remover/readicionar
+    historyList.removeEventListener('click', handleHistoryButtonClick); // Remove listener anterior se existir
+    historyList.addEventListener('click', handleHistoryButtonClick); // Adiciona o novo listener
+}
+
+// app.js - Fora da classe QuizManager
+// SUBSTITUA a função handleHistoryButtonClick por esta:
+function handleHistoryButtonClick(event) {
+    const reviewAllBtn = event.target.closest('.review-all-history');
+    const reviewWrongBtn = event.target.closest('.review-wrong-history');
+
+    if (reviewAllBtn) {
+        const quizId = reviewAllBtn.dataset.quizId;
+        console.log(
+            "[History Review] Clicado em 'Refazer Todas'. ID do Quiz:",
+            quizId
+        ); // Log ID
+        if (quizId) {
+            startQuizReview(quizId, false); // false = refazer todas
+        } else {
+            console.error(
+                "[History Review] Botão 'Refazer Todas' não possui data-quiz-id."
+            );
+            alert('Erro: Não foi possível identificar o quiz para refazer.');
+        }
+        return;
+    }
+
+    if (reviewWrongBtn && !reviewWrongBtn.disabled) {
+        const quizId = reviewWrongBtn.dataset.quizId;
+        console.log(
+            "[History Review] Clicado em 'Refazer Erradas'. ID do Quiz:",
+            quizId
+        ); // Log ID
+        if (quizId) {
+            startQuizReview(quizId, true); // true = refazer erradas
+        } else {
+            console.error(
+                "[History Review] Botão 'Refazer Erradas' não possui data-quiz-id."
+            );
+            alert('Erro: Não foi possível identificar o quiz para refazer.');
+        }
+        return;
     }
 }
 
